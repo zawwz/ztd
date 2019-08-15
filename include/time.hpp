@@ -1,9 +1,9 @@
-#ifndef ZTIME_HPP
-#define ZTIME_HPP
+#ifndef TIME_HPP
+#define TIME_HPP
 
 #include <sys/time.h>
 
-/*! @file ztime.hpp
+/*! @file time.hpp
 *  @brief Time measuring and managing
 */
 
@@ -50,4 +50,4 @@ namespace ztd
 }
 
 
-#endif //ZTIME_HPP
+#endif //TIME_HPP

@@ -1,5 +1,5 @@
-#ifndef ZCOLOR_HPP
-#define ZCOLOR_HPP
+#ifndef COLOR_HPP
+#define COLOR_HPP
 
 #include <iostream>
 
@@ -19,7 +19,7 @@
 //! Number of predefined colors
 #define COLOR_COUNT 19
 
-/*! @file zcolor.hpp
+/*! @file color.hpp
 *  @brief Color management
 */
 
@@ -117,4 +117,4 @@ namespace ztd
   inline std::ostream& operator<<(std::ostream& st, const color& c) { return st << c.code(); }
 }
 
-#endif //ZCOLOR_HPP
+#endif //COLOR_HPP

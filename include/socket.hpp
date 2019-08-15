@@ -13,7 +13,7 @@
 #include <condition_variable> // std::condition_variable
 
 
-/*! @file zsocket.hpp
+/*! @file socket.hpp
 *  @brief Manage network sockets
 */
 

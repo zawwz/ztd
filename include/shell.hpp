@@ -1,10 +1,10 @@
-#ifndef ZSHELL_HPP
-#define ZSHELL_HPP
+#ifndef SHELL_HPP
+#define SHELL_HPP
 
 #include <string>
 #include <stdio.h>
 
-/*! \file zshell.hpp
+/*! \file shell.hpp
 *  @brief Shell functionality and interaction
 */
 
@@ -39,4 +39,4 @@ namespace ztd
   // };
 }
 
-#endif //ZSHELL_HPP
+#endif //SHELL_HPP

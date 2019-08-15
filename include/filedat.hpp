@@ -1,5 +1,5 @@
-#ifndef ZFILEDAT_HPP
-#define ZFILEDAT_HPP
+#ifndef FILEDAT_HPP
+#define FILEDAT_HPP
 
 #include <string>
 #include <vector>
@@ -11,7 +11,7 @@
 #include <cstring>
 
 
-/*! @file zfiledat.hpp
+/*! @file filedat.hpp
 *  @brief Storing and reading data
 *
 * Easily organize data in a JSON-like file format
@@ -391,4 +391,4 @@ namespace ztd
 }
 
 
-#endif //ZFILEDAT_HPP
+#endif //FILEDAT_HPP

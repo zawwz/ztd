@@ -1,10 +1,10 @@
-#ifndef ZTHREAD_HPP
-#define ZTHREAD_HPP
+#ifndef THREAD_HPP
+#define THREAD_HPP
 
 #include <vector>
 #include <thread>
 
-/*! \file zthread.hpp
+/*! \file thread.hpp
 *  @brief Thread management
 */
 
@@ -37,4 +37,4 @@ namespace ztd
 }
 
 
-#endif //ZTHREAD_HPP
+#endif //THREAD_HPP

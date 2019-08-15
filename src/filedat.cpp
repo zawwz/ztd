@@ -1,4 +1,4 @@
-#include "zfiledat.hpp"
+#include "filedat.hpp"
 
 // Function code
 bool ztd::filedat::isRead(char in)

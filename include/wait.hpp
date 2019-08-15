@@ -1,10 +1,10 @@
-#ifndef ZWAIT_HPP
-#define ZWAIT_HPP
+#ifndef WAIT_HPP
+#define WAIT_HPP
 
 #include <mutex>              // std::mutex, std::unique_lock
 #include <condition_variable> // std::condition_variable
 
-/*! \file zwait.hpp
+/*! \file wait.hpp
 *  @brief Thread stalling and waiting
 */
 
@@ -30,4 +30,4 @@ namespace ztd
   };
 }
 
-#endif //ZWAIT_HPP
+#endif //WAIT_HPP

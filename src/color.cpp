@@ -1,4 +1,4 @@
-#include "zcolor.hpp"
+#include "color.hpp"
 
 const char* ztd::color::color_name_index[COLOR_COUNT] = {
   "none",

@@ -1,5 +1,5 @@
-#ifndef ZOPTIONS_H
-#define ZOPTIONS_H
+#ifndef OPTIONS_H
+#define OPTIONS_H
 
 //DUPLICATES NOT HANDLED: takes last one
 //NO ORDER: no way to know options order
@@ -11,7 +11,7 @@
 
 #include <exception>
 
-/*! @file zoptions.hpp
+/*! @file options.hpp
 *  @brief CLI option reading and processing
 *
 * Easy managing of POSIX/GNU style options
@@ -143,4 +143,4 @@ namespace ztd
 
 } //ztd
 
-#endif //ZOPTIONS_H
+#endif //OPTIONS_H
