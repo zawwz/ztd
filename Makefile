@@ -45,12 +45,12 @@ shared: $(OBJ_SHARED)
 	$(CC) -shared -o libztd.so $^
 
 install: all
-	mv libztd.a libztd.so /usr/local/lib
-	cp -r include /usr/local/include/ztd
+	mv libztd.a libztd.so /usr/lib
+	cp -r include /usr/include/ztd
 
 uninstall:
-	rm /usr/local/lib/libztd.*
-	rm -rd /usr/local/include/ztd
+	rm /usr/lib/libztd.*
+	rm -rd /usr/include/ztd
 
 clean:
 	rm $(ODIR)/*.o $(ODIR_SHARED)/*.o
