@@ -44,5 +44,9 @@ static: $(OBJ)
 shared: $(OBJ_SHARED)
 	$(CC) -shared -o libztd.so $^
 
+install: all
+	mv libztd.a libztd.so /usr/lib
+	cp -r include /usr/include/ztd
+
 clean:
 	rm $(ODIR)/*.o $(ODIR_SHARED)/*.o
