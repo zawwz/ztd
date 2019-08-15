@@ -13,6 +13,4 @@ Use ``doxygen`` to generate HTML documentation files
 
 ## Installing
 
-``sudo make install``  
-Moves ``libztd.a`` and ``libztd.so`` to ``/usr/lib``  
-Copies headers to ``/usr/include/ztd``
+``sudo make install``
