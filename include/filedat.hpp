@@ -106,7 +106,6 @@ namespace ztd
     //! @brief Constructor with initial value
     chunkdat(std::string const& in);
     chunkdat(const char* in, const int in_size,  int offset=0, filedat* data=nullptr);
-    chunkdat(std::string const& in, int offset=0, filedat* data=nullptr);
     //! @brief Constructor with copy
     chunkdat(chunkdat const& in);
     //dtor

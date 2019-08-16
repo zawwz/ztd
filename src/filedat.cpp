@@ -882,11 +882,6 @@ ztd::chunkdat::chunkdat(const char* in, const int in_size,  int offset, filedat*
   m_achunk=nullptr;
   set(in, in_size, offset, data);
 }
-ztd::chunkdat::chunkdat(std::string const& in, int offset, filedat* data)
-{
-  m_achunk=nullptr;
-  set(in, offset, data);
-}
 ztd::chunkdat::chunkdat(chunkdat const& in)
 {
   m_achunk=nullptr;
