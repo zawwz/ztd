@@ -46,7 +46,8 @@ shared: $(OBJ_SHARED)
 
 install: all
 	mv libztd.a libztd.so /usr/lib
-	cp -r include /usr/include/ztd
+	mkdir -p /usr/include/ztd
+	cp -r include/* /usr/include/ztd
 
 uninstall:
 	rm /usr/lib/libztd.*

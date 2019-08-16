@@ -623,7 +623,7 @@ void ztd::chunkdat::addToMap(std::string const& name, chunkdat const& val)
 void ztd::chunkdat::addToMap(std::vector<std::pair<std::string, chunkdat>> const& vec)
 {
   for(auto it : vec)
-  this->addToMap(it.first, it.second);
+    this->addToMap(it.first, it.second);
 }
 
 void ztd::chunkdat::addToList(chunkdat const& val)
@@ -648,7 +648,78 @@ void ztd::chunkdat::addToList(chunkdat const& val)
 void ztd::chunkdat::addToList(std::vector<chunkdat> const& vec)
 {
   for(auto it : vec)
-  this->addToList(it);
+    this->addToList(it);
+}
+
+void ztd::chunkdat::concatenate(chunkdat const& chk)
+{
+  if(this->type() == ztd::chunk_abstract::none) //nothing: copy
+  {
+    this->set(chk);
+  }
+  else if(this->type()==ztd::chunk_abstract::map && chk.type()==ztd::chunk_abstract::map) //map
+  {
+    ztd::chunk_map* cc = dynamic_cast<chunk_map*>(chk.getp());
+    for(auto it : cc->values)
+    {
+      this->add(it.first, *it.second);
+    }
+  }
+  else if(this->type()==ztd::chunk_abstract::list && chk.type()==ztd::chunk_abstract::list) //list
+  {
+    ztd::chunk_list* cc = dynamic_cast<chunk_list*>(chk.getp());
+    for(auto it : cc->list)
+    {
+      this->add(*it);
+    }
+  }
+  else if(this->type()==ztd::chunk_abstract::string && chk.type()==ztd::chunk_abstract::string) //string
+  {
+    ztd::chunk_string* ci = dynamic_cast<chunk_string*>(chk.getp());
+    ztd::chunk_string* cc = dynamic_cast<chunk_string*>(m_achunk);
+    cc->val += ci->val;
+  }
+  else
+  {
+    throw ztd::format_error("Cannot concatenate chunks of different types", "", "", -1);
+  }
+}
+
+void ztd::chunkdat::erase(const std::string& key)
+{
+  if(this->type()==ztd::chunk_abstract::map)
+  {
+    ztd::chunk_map* cp = dynamic_cast<chunk_map*>(m_achunk);
+    auto it = cp->values.find(key);
+    if( it == cp->values.end() )
+    {
+      throw ztd::format_error("Key '" + key + "' not present", "", this->strval(), -1);
+    }
+    delete it->second;
+    cp->values.erase(it);
+  }
+  else
+  {
+    throw ztd::format_error("Cannot erase element from non-map chunk", "", this->strval(), -1);
+  }
+}
+
+void ztd::chunkdat::erase(const unsigned int index)
+{
+  if(this->type()==ztd::chunk_abstract::list)
+  {
+    if(index >= (unsigned int) this->listSize())
+    {
+      throw ztd::format_error("Cannot erase out of bonds: "+std::to_string(index)+" in size "+std::to_string(this->listSize()), "", this->strval(), -1);
+    }
+    ztd::chunk_list* lp = dynamic_cast<chunk_list*>(m_achunk);
+    delete lp->list[index];
+    lp->list.erase(lp->list.begin() + index);
+  }
+  else
+  {
+    throw ztd::format_error("Cannot erase element from non-list chunk", "", this->strval(), -1);
+  }
 }
 
 std::string ztd::chunkdat::strval(unsigned int alignment, std::string const& aligner) const

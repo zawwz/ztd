@@ -178,7 +178,18 @@ namespace ztd
     @param vec Vector of data to add
     */
     inline void add(std::vector<chunkdat> const& vec) { addToList(vec); }
-    // void concatenate(chunkdat const& chk); //concatenates chunks
+    //! @brief Concatenate chunks of data
+    /*! Effective only if the two chunks are of the same type\n
+        Map: combines two maps into a single map\n
+        List: combines into a single list\n
+        String: Concatenate strings
+    */
+    void concatenate(chunkdat const& chk);
+
+    void erase(const std::string& key);
+
+    void erase(const unsigned int index);
+
 
     //! @brief Create a copy of the chunk
     inline chunkdat copy() const { return chunkdat(*this); }
@@ -214,27 +225,26 @@ namespace ztd
     */
     chunkdat* subChunkPtr(const unsigned int a) const;
 
-    //! @brief Reference to subchunk of map
-    /*!
-    @see subChunkRef(std::string const& a) const
-    */
-    inline chunkdat& operator[](std::string const& a) const                                 { return subChunkRef(a); }
-    //! @brief Reference to subchunk of Map
-    /*!
-    @see subChunkRef(const unsigned int a) const
-    */
-    inline chunkdat& operator[](const unsigned int a) const                                    { return subChunkRef(a); }
-    //! @brief Copy contents of chunk
-    inline chunkdat& operator=(chunkdat const& a)                                              { set(a); return *this; }
-    //! @brief add() and return *this
+    //! @brief Reference to subchunk of map.    @see subChunkRef(std::string const& a) const
+    inline chunkdat& operator[](std::string const& a) const                             { return subChunkRef(a); }
+    //! @brief Reference to subchunk of list.   @see subChunkRef(const unsigned int a) const
+    inline chunkdat& operator[](const unsigned int a) const                             { return subChunkRef(a); }
+    //! @brief Set chunk data and return *this. @see set(chunkdat const& in)
+    inline chunkdat& operator=(chunkdat const& a)                                       { set(a); return *this; }
+    //! @brief add and return *this.            @see add(std::string const& name, chunkdat const& val)
     inline chunkdat& operator+=(std::pair<std::string, chunkdat> const& a)              { add(a.first, a.second); return *this; }
-    //! @brief add() and return *this
+    //! @brief add and return *this.            @see add(std::vector<std::pair<std::string, chunkdat>> const& vec)
     inline chunkdat& operator+=(std::vector<std::pair<std::string, chunkdat>> const& a) { add(a); return *this; }
-    //! @brief add() and return *this
+    //! @brief add and return *this.            @see add(chunkdat const& val)
     inline chunkdat& operator+=(chunkdat const& a)                                      { add(a); return *this; }
-    //! @brief add() and return *this
+    //! @brief add and return *this.            @see add(std::vector<chunkdat> const& vec)
     inline chunkdat& operator+=(std::vector<chunkdat> const& a)                         { add(a); return *this; }
-    // inline bool operator*=(chunkdat const& a) { concatenate(a); }
+    //! @brief concatenate and return *this.    @see concatenate(chunkdat const& chk)
+    inline chunkdat& operator*=(chunkdat const& a)                                      { concatenate(a); return *this; }
+    //! @brief remove and return *this.         @see remove(const std::string& key)
+    inline chunkdat& operator-=(const std::string& key)     { erase(key); return *this; }
+    //! @brief remove and return *this.         @see remove(const unsigned int index)
+    inline chunkdat& operator-=(const unsigned int index)   { erase(index); return *this; }
 
     //add operator+ and operator*
 
@@ -245,6 +255,21 @@ namespace ztd
 
     chunk_abstract* m_achunk;
   };
+
+  //! @brief add
+  inline chunkdat operator+(const chunkdat& a, const std::pair<std::string, chunkdat>& b)               { chunkdat ret(a); ret += b; return ret; }
+  //! @brief add
+  inline chunkdat operator+(const chunkdat& a, const std::vector<std::pair<std::string, chunkdat>>& b)  { chunkdat ret(a); ret += b; return ret; }
+  //! @brief add
+  inline chunkdat operator+(const chunkdat& a, const chunkdat& b)                                       { chunkdat ret(a); ret += b; return ret; }
+  //! @brief add
+  inline chunkdat operator+(const chunkdat& a, const std::vector<chunkdat>& b)                          { chunkdat ret(a); ret += b; return ret; }
+  //! @brief concatenated chunk
+  inline chunkdat operator*(const chunkdat& a, const chunkdat& b)     { chunkdat ret(a); ret *= b; return ret; }
+  //! @brief substract
+  inline chunkdat operator-(const chunkdat& a, const std::string& b)  { chunkdat ret(a); ret -= b; return ret; }
+  //! @brief substract
+  inline chunkdat operator-(const chunkdat& a, const unsigned int b)  { chunkdat ret(a); ret -= b; return ret; }
 
   //! @brief File data object
   /*!
