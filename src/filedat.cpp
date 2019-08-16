@@ -738,7 +738,7 @@ std::string ztd::chunkdat::strval(unsigned int alignment, std::string const& ali
     {
       ret += repeatString(aligner,alignment+1);
       ret += it.first;
-      ret += '=';
+      ret += " = ";
       if(it.second!=nullptr)
       ret += it.second->strval(alignment+1, aligner);
       ret += '\n';
