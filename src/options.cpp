@@ -123,8 +123,8 @@ void ztd::option::print_help(int leftpad, int rightpad) const
   //argument
   if(this->takesArgument)
   {
-    printf(" <%s>", arg_name.c_str());
-    rightpad -= arg_name.size() + 3;
+    printf("<%s>", arg_name.c_str());
+    rightpad -= arg_name.size() + 2;
   }
 
   printf("%*s%s", -1*rightpad, "", help_text.c_str());
