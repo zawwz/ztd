@@ -220,36 +220,36 @@ static std::string _getname(const char* in, const int in_size, int* start, int* 
   }
   if(in[i] == '\"') //"" val
   {
-    i++;
     *start=i; //value starts
-    j=0; //size
+    j=1; //size
     while(i+j < in_size && in[i+j]!='\"')
     {
-      if(in[i]+j=='\\')
+      if(in[i+j]=='\\')
       j++;
       j++;
     }
     if(i+j >= in_size) // no closing "
     throw ztd::format_error("Double quote does not close", "", std::string(in, in_size), i-1);
+    j++;
     *val_size=j;
-    *end=i+j+1;
+    *end=i+j;
     return name;
   }
   if(in[i] == '\'') //"" val
   {
-    i++;
     *start=i; //value starts
-    j=0; //size
+    j=1; //size
     while(i+j < in_size && in[i+j]!='\'')
     {
-      if(in[i]+j=='\\')
+      if(in[i+j]=='\\')
       j++;
       j++;
     }
     if(i+j >= in_size) // no closing '
     throw ztd::format_error("Single quote does not close", "", std::string(in, in_size), i-1);
+    j++;
     *val_size=j;
-    *end=i+j+1;
+    *end=i+j;
     return name;
   }
   if(in[i] == '{')
@@ -353,33 +353,33 @@ static std::string _getlist(const char* in, const int in_size, int* start, int* 
   int j=0;
   if(in[i] == '\"') //"" val
   {
-    i++;
-    j=0; //size
+    j=1; //size
     while(i+j < in_size && in[i+j]!='\"')
     {
-      if(in[i]+j=='\\')
+      if(in[i+j]=='\\')
       j++;
       j++;
     }
     if(i+j >= in_size) // no closing "
     throw ztd::format_error("Double quote does not close", "", std::string(in, in_size), i-1);
+    j++;
     ret = std::string(in+i, j);
-    *end=i+j+1;
+    *end=i+j;
   }
   else if(in[i] == '\'') //"" val
   {
-    i++;
-    j=0; //size
+    j=1; //size
     while(i+j < in_size && in[i+j]!='\'')
     {
-      if(in[i]+j=='\\')
+      if(in[i+j]=='\\')
       j++;
       j++;
     }
     if(i+j >= in_size) // no closing '
     throw ztd::format_error("Single quote does not close", "", std::string(in, in_size), i-1);
+    j++;
     ret = std::string(in+i, j);
-    *end=i+j+1;
+    *end=i+j;
   }
   else if(in[i] == '{')
   {
@@ -656,6 +656,7 @@ std::string ztd::chunkdat::strval(unsigned int alignment, std::string const& ali
   if(this->type()==ztd::chunk_abstract::string)
   {
     ztd::chunk_string* vp = dynamic_cast<chunk_string*>(m_achunk);
+
     return vp->val;
   }
   else if(this->type()==ztd::chunk_abstract::map)
