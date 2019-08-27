@@ -142,8 +142,8 @@ ztd::option* ztd::option_set::find(char c)
 {
   for( auto it=m_options.begin() ; it!=m_options.end() ; it++ )
   {
-    if((*it).shortDef && (*it).charName == c)
-      return &(*it);
+    if(it->shortDef && it->charName == c)
+      return &*it;
   }
   return nullptr;
 }
@@ -152,8 +152,8 @@ ztd::option* ztd::option_set::find(std::string const& str)
 {
   for( auto it=m_options.begin() ; it!=m_options.end() ; it++ )
   {
-    if((*it).longDef && (*it).strName == str)
-    return &(*it);
+    if(it->longDef && it->strName == str)
+      return &*it;
   }
   return nullptr;
 }

@@ -122,6 +122,7 @@ namespace ztd
     option* find(char c);
     //! @brief Find string option
     option* find(std::string const& str);
+    inline option* find(const char* str) { return this->find(std::string(str)); }
 
     /*PROCESSING FUNCTIONS*/
     //! @brief Process arguments through the option set
