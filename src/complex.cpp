@@ -13,26 +13,26 @@ ztd::complex::complex(const ztd::complex& z)
   im=z.im;
 }
 
-ztd::complex& ztd::complex::operator+=(const ztd::complex& z)
+ztd::complex& ztd::complex::operator+=(ztd::complex z)
 {
   real += z.real;
   im += z.im;
   return *this;
 }
-ztd::complex& ztd::complex::operator-=(const ztd::complex& z)
+ztd::complex& ztd::complex::operator-=(ztd::complex z)
 {
   real -= z.real;
   im -= z.im;
   return *this;
 }
-ztd::complex& ztd::complex::operator*=(const ztd::complex& z)
+ztd::complex& ztd::complex::operator*=(ztd::complex z)
 {
   double r=real;
   real = real*z.real - im*z.im;
   im = r*z.im + im*z.real;
   return *this;
 }
-ztd::complex& ztd::complex::operator/=(const ztd::complex& z)
+ztd::complex& ztd::complex::operator/=(ztd::complex z)
 {
   double r=real;
   double div = z.real*z.real + z.im*z.im;
