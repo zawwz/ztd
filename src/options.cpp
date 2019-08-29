@@ -229,11 +229,8 @@ std::vector<std::string> ztd::option_set::process(std::vector<std::string> argum
             }
             else //continue
             {
-              if( (*it)[i] != '=') //incorrect
-              {
-                throw ztd::option_error(ztd::option_error::missing_arg, std::string("-") +  popt->charName );
-              }
-              i++;
+              if( (*it)[i] == '=')
+                i++;
               popt->argument = (*it).substr(i , (*it).size()-i );
               popt->activated = true;
               tstop=true;
