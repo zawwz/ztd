@@ -100,13 +100,18 @@ namespace ztd
   //! @brief Set of POSIX/GNU style options
   /*!
     Process arguments through it to extract options
+
+    After processing:
+    - for global option settings use find() or parse option_vec
+    - for sequential option settings parse option_sequence
+
   */
   class option_set
   {
   public:
     /*CREATION FUNCTIONS*/
     //! @brief Add option to the set
-    inline void add(option opt) { m_options.push_back(opt); }
+    inline void add(option opt) { option_vec.push_back(opt); }
 
     /*PRINT FUNCTIONS*/
     //! @brief Print help for the full option set
@@ -138,8 +143,11 @@ namespace ztd
     */
     inline std::vector<std::string> process(int argc, char** argv) { return this->process(ztd::argVector(argc, argv)); }
 
-  private:
-    std::vector<option> m_options;
+    //! @brief Options in the set
+    std::vector<option> option_vec;
+
+    //! @brief Ordered result of option processing
+    std::vector<option> option_sequence;
   };
 
 } //ztd

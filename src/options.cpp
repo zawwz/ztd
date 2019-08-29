@@ -98,7 +98,8 @@ ztd::option::option(const option& opt)
   //help
   help_text=opt.help_text;
   //init
-  activated=false;
+  activated=opt.activated;
+  argument=opt.argument;
 }
 
 void ztd::option::print_help(int leftpad, int rightpad) const
@@ -134,13 +135,13 @@ void ztd::option::print_help(int leftpad, int rightpad) const
 
 void ztd::option_set::print_help(int leftpad, int rightpad) const
 {
-  for(auto it : this->m_options)
+  for(auto it : this->option_vec)
     it.print_help(leftpad,rightpad);
 }
 
 ztd::option* ztd::option_set::find(char c)
 {
-  for( auto it=m_options.begin() ; it!=m_options.end() ; it++ )
+  for( auto it=option_vec.begin() ; it!=option_vec.end() ; it++ )
   {
     if(it->shortDef && it->charName == c)
       return &*it;
@@ -150,7 +151,7 @@ ztd::option* ztd::option_set::find(char c)
 
 ztd::option* ztd::option_set::find(std::string const& str)
 {
-  for( auto it=m_options.begin() ; it!=m_options.end() ; it++ )
+  for( auto it=option_vec.begin() ; it!=option_vec.end() ; it++ )
   {
     if(it->longDef && it->strName == str)
       return &*it;
@@ -162,6 +163,7 @@ std::vector<std::string> ztd::option_set::process(std::vector<std::string> argum
 {
   std::vector<std::string> out;
   unsigned int i=0;
+  option_sequence.clear();
   for( auto it = arguments.begin(); it!=arguments.end() ; it++ )
   {
     if( (*it).size()>0 && (*it)[0]=='-' )
@@ -184,9 +186,13 @@ std::vector<std::string> ztd::option_set::process(std::vector<std::string> argum
             }
             popt->activated = true;
             popt->argument = (*it);
+            option_sequence.push_back(*popt);
           }
           else
+          {
             popt->activated = true;
+            option_sequence.push_back(*popt);
+          }
         }
         else
         {
@@ -199,7 +205,9 @@ std::vector<std::string> ztd::option_set::process(std::vector<std::string> argum
           {
             throw ztd::option_error(ztd::option_error::takes_no_arg, "--" + popt->strName);
           }
+          popt->activated = true;
           popt->argument = (*it).substr(eqn+1,(*it).size()-eqn-1 );
+          option_sequence.push_back(*popt);
         }
       }
       else
@@ -225,6 +233,7 @@ std::vector<std::string> ztd::option_set::process(std::vector<std::string> argum
               }
               popt->activated = true;
               popt->argument = (*it);
+              option_sequence.push_back(*popt);
               tstop = true;
             }
             else //continue
@@ -233,11 +242,15 @@ std::vector<std::string> ztd::option_set::process(std::vector<std::string> argum
                 i++;
               popt->argument = (*it).substr(i , (*it).size()-i );
               popt->activated = true;
+              option_sequence.push_back(*popt);
               tstop=true;
             }
           }
           else //no argument
+          {
             popt->activated = true;
+            option_sequence.push_back(*popt);
+          }
           i++;
         }
       }
