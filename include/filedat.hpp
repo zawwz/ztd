@@ -342,10 +342,10 @@ namespace ztd
 
     //! @brief Reference to subchunk
     //! @see chunkdat::operator[](std::string const &a) const
-    inline chunkdat& operator[](const std::string& index) { return m_dataChunk->subChunkRef(index); }
+    inline chunkdat& operator[](const std::string& index) const { return m_dataChunk->subChunkRef(index); }
     //! @brief Reference to subchunk
     //! @see chunkdat::operator[](const unsigned int a) const
-    inline chunkdat& operator[](const unsigned int index) { return m_dataChunk->subChunkRef(index); }
+    inline chunkdat& operator[](const unsigned int index) const { return m_dataChunk->subChunkRef(index); }
 
     //! @brief add data and return *this
     //! @see chunkdat::operator+=(std::pair<std::string, chunkdat> const& a)

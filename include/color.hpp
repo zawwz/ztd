@@ -114,7 +114,9 @@ namespace ztd
   };
 
   //! Insert color code to stream
-  inline std::ostream& operator<<(std::ostream& st, const color& c) { return st << c.code(); }
+  inline std::ostream& operator<<(std::ostream& st, const ztd::color& c) { return st << c.code(); }
+  //! Insert color code to stream
+  inline std::ostream& operator<<(std::ostream& st, const ztd::color::color_name& c) { return st << ztd::color::color_index[c]; }
 }
 
 #endif //COLOR_HPP
