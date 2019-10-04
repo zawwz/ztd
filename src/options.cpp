@@ -159,7 +159,7 @@ ztd::option* ztd::option_set::find(std::string const& str)
   return nullptr;
 }
 
-std::vector<std::string> ztd::option_set::process(std::vector<std::string> arguments)
+std::vector<std::string> ztd::option_set::process(std::vector<std::string> arguments, bool ignore_numbers)
 {
   std::vector<std::string> out;
   unsigned int i=0;
@@ -213,46 +213,55 @@ std::vector<std::string> ztd::option_set::process(std::vector<std::string> argum
       else
       {
         i=1;
-        ztd::option* popt=nullptr;
-        bool tstop=false;
-        while( !tstop && it!=arguments.end() && (*it).size()>i )
+        if( ignore_numbers && (*it)[i] >= '0' && (*it)[i] <= '9')
         {
-          popt=this->find((*it)[i]);
-          if(popt==nullptr) //not found: error
-          {
-            throw ztd::option_error(ztd::option_error::unknown_option, std::string("-") + (*it)[i] );
-          }
-          if(popt->takesArgument) //no argument
-          {
+          while(it!=arguments.end() && (*it).size()>i)
             i++;
-            if((*it).size()<=i) //finishes here
-            {
-              if( ++it == arguments.end() )
-              {
-                throw ztd::option_error(ztd::option_error::missing_arg, std::string("-") +  popt->charName );
-              }
-              popt->activated = true;
-              popt->argument = (*it);
-              option_sequence.push_back(*popt);
-              tstop = true;
-            }
-            else //continue
-            {
-              if( (*it)[i] == '=')
-                i++;
-              popt->argument = (*it).substr(i , (*it).size()-i );
-              popt->activated = true;
-              option_sequence.push_back(*popt);
-              tstop=true;
-            }
-          }
-          else //no argument
-          {
-            popt->activated = true;
-            option_sequence.push_back(*popt);
-          }
-          i++;
+          out.push_back(*it);
         }
+        else
+        {
+          ztd::option* popt=nullptr;
+          bool tstop=false;
+          while( !tstop && it!=arguments.end() && (*it).size()>i )
+          {
+            popt=this->find((*it)[i]);
+            if(popt==nullptr) //not found: error
+            {
+              throw ztd::option_error(ztd::option_error::unknown_option, std::string("-") + (*it)[i] );
+            }
+            if(popt->takesArgument) //no argument
+            {
+              i++;
+              if((*it).size()<=i) //finishes here
+              {
+                if( ++it == arguments.end() )
+                {
+                  throw ztd::option_error(ztd::option_error::missing_arg, std::string("-") +  popt->charName );
+                }
+                popt->activated = true;
+                popt->argument = (*it);
+                option_sequence.push_back(*popt);
+                tstop = true;
+              }
+              else //continue
+              {
+                if( (*it)[i] == '=')
+                  i++;
+                popt->argument = (*it).substr(i , (*it).size()-i );
+                popt->activated = true;
+                option_sequence.push_back(*popt);
+                tstop=true;
+              }
+            }
+            else //no argument
+            {
+              popt->activated = true;
+              option_sequence.push_back(*popt);
+            }
+            i++;
+          } //while
+        } // if not number
       }
     }
     else

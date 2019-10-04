@@ -136,12 +136,12 @@ namespace ztd
       @param arguments vector of string containing arguments and options
       @return Leftover arguments that are not options\n
     */
-    std::vector<std::string> process(std::vector<std::string> arguments);
+    std::vector<std::string> process(std::vector<std::string> arguments, bool ignore_numbers=false);
     //! @brief Process arguments through the option set
     /*!
       calls process(std::vector<std::string> arguments)
     */
-    inline std::vector<std::string> process(int argc, char** argv) { return this->process(ztd::argVector(argc, argv)); }
+    inline std::vector<std::string> process(int argc, char** argv, bool ignore_numbers=false) { return this->process(ztd::argVector(argc, argv), ignore_numbers); }
 
     //! @brief Options in the set
     std::vector<option> option_vec;
