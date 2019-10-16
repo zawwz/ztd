@@ -59,9 +59,9 @@ namespace ztd
     //! @brief Create a char defined option
     option(char c, bool arg=false, std::string helptext="", std::string argname="arg");
     //! @brief Create a string defined option
-    option(std::string const& str, bool arg=false, std::string helptext="", std::string argname="arg");
+    option(const std::string& str, bool arg=false, std::string helptext="", std::string argname="arg");
     //! @brief Create a char and string defined option
-    option(char c, std::string const& str, bool arg=false, std::string helptext="", std::string argname="arg");
+    option(char c, const std::string& str, bool arg=false, std::string helptext="", std::string argname="arg");
     //! @brief Create copy
     option(const option& opt);
 
@@ -95,6 +95,9 @@ namespace ztd
     //! @brief Option's argument
     std::string argument;   // argument of the option
 
+    inline operator bool() const { return activated; }
+    inline operator std::string() const { return argument; }
+
   };
 
   //! @brief Set of POSIX/GNU style options
@@ -124,9 +127,13 @@ namespace ztd
 
     /*QUERY FUNCTIONS*/
     //! @brief Find char option
-    option* find(char c);
+    /*! @return nullptr if no option found
+    */
+    option* find(const char c);
     //! @brief Find string option
-    option* find(std::string const& str);
+    /*! @return nullptr if no option found
+    */
+    option* find(const std::string& str);
     inline option* find(const char* str) { return this->find(std::string(str)); }
 
     /*PROCESSING FUNCTIONS*/
@@ -143,9 +150,21 @@ namespace ztd
     */
     inline std::vector<std::string> process(int argc, char** argv, bool ignore_numbers=false) { return this->process(ztd::argVector(argc, argv), ignore_numbers); }
 
+    //! @brief Get option with char name
+    /*! @see option* find(char c)
+    */
+    option& operator[](const char c) { return *this->find(c); }
+    //! @brief Get option with char name
+    /*! @see option* find(const std::string& str);
+    */
+    option& operator[](const std::string& str) { return *this->find(str); }
+    //! @brief Get nth option
+    /*! Reads nth option from @a option_sequence
+    */
+    option& operator[](unsigned int n) { return option_sequence[n]; }
+
     //! @brief Options in the set
     std::vector<option> option_vec;
-
     //! @brief Ordered result of option processing
     std::vector<option> option_sequence;
   };

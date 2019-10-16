@@ -50,7 +50,7 @@ ztd::option::option(char c, bool arg, std::string helptext, std::string argname)
   activated=false;
 }
 
-ztd::option::option(std::string const& str, bool arg, std::string helptext, std::string argname)
+ztd::option::option(const std::string& str, bool arg, std::string helptext, std::string argname)
 {
   //char
   shortDef=false;
@@ -67,7 +67,7 @@ ztd::option::option(std::string const& str, bool arg, std::string helptext, std:
   activated=false;
 }
 
-ztd::option::option(char c, std::string const& str, bool arg, std::string helptext, std::string argname)
+ztd::option::option(char c, const std::string& str, bool arg, std::string helptext, std::string argname)
 {
   //char
   shortDef=true;
@@ -139,7 +139,7 @@ void ztd::option_set::print_help(int leftpad, int rightpad) const
     it.print_help(leftpad,rightpad);
 }
 
-ztd::option* ztd::option_set::find(char c)
+ztd::option* ztd::option_set::find(const char c)
 {
   for( auto it=option_vec.begin() ; it!=option_vec.end() ; it++ )
   {
@@ -149,7 +149,7 @@ ztd::option* ztd::option_set::find(char c)
   return nullptr;
 }
 
-ztd::option* ztd::option_set::find(std::string const& str)
+ztd::option* ztd::option_set::find(const std::string& str)
 {
   for( auto it=option_vec.begin() ; it!=option_vec.end() ; it++ )
   {
