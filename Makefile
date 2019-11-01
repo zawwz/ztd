@@ -56,3 +56,6 @@ uninstall:
 
 clean:
 	rm $(ODIR)/*.o $(ODIR_SHARED)/*.o
+
+clear:
+	rm libztd.a libztd.so
