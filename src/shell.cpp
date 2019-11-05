@@ -9,6 +9,11 @@
 
 std::string ztd::sh(const std::string& command, bool to_console)
 {
+  return ztd::shp(command, to_console).first;
+}
+
+std::pair<std::string, int> ztd::shp(const std::string& command, bool to_console)
+{
   std::string ret;
   FILE *stream = popen(command.c_str(), "r");
   char* buff = NULL;
@@ -21,8 +26,7 @@ std::string ztd::sh(const std::string& command, bool to_console)
     }
     ret += buff;
   }
-  pclose(stream);
-  return ret;
+  return std::make_pair(ret, pclose(stream));
 }
 
 FILE* ztd::popen2(const char* command, const char* type, int* pid)

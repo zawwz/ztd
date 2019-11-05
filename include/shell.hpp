@@ -2,6 +2,7 @@
 #define SHELL_HPP
 
 #include <string>
+#include <utility>
 #include <stdio.h>
 
 /*! \file shell.hpp
@@ -15,9 +16,16 @@ namespace ztd
   @param command Shell command to execute
   @param to_console Output to console
   @return Output of the command
-  @see <a href="https://linux.die.net/man/3/systeml">system(), pclose()</a>
   */
   std::string sh(const std::string& command, bool to_console=false);
+
+  //! @brief Execute a shell command and retrieve its output and return value
+  /*!
+  @param command Shell command to execute
+  @param to_console Output to console
+  @return @b first Output of command\n@b second Return value of command
+  */
+  std::pair<std::string, int> shp(const std::string& command, bool to_console=false);
 
   //! @brief popen C function with added pid functionality
   /*!
