@@ -111,6 +111,8 @@ namespace ztd
     //! Stored ansi color code
     std::string color_code;
 
+    inline operator std::string() const { return color_code; };
+
   };
 
   //! Insert color code to stream
