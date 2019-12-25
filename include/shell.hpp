@@ -3,7 +3,11 @@
 
 #include <string>
 #include <utility>
+#include <queue>
 #include <stdio.h>
+
+
+#include "wait.hpp"
 
 /*! \file shell.hpp
 *  @brief Shell functionality and interaction
@@ -15,9 +19,17 @@ namespace ztd
   /*!
   @param command Shell command to execute
   @param to_console Output to console
-  @return Output of the command
+  @return Output of command
   */
   std::string sh(const std::string& command, bool to_console=false);
+
+  //! @brief Execute a shell command and retrieve its return value
+  /*!
+  @param command Shell command to execute
+  Always outputs to console
+  @return Return value of command
+  */
+  int shr(const std::string& command);
 
   //! @brief Execute a shell command and retrieve its output and return value
   /*!
@@ -40,11 +52,36 @@ namespace ztd
   */
   int pclose2(FILE* fp, pid_t pid);
 
-  // class shell
-  // {
-  // public:
-  // private:
-  // };
+  class shc
+  {
+  public:
+    shc(std::string const& cmd="", bool const cout=false);
+    virtual ~shc();
+
+    void run();
+    int kill_int();
+
+    void wait_output();
+    std::string get_output();
+
+    void wait_finish();
+
+    std::string command;
+    bool to_console;
+
+    bool running;
+    pid_t pid;
+
+    std::queue<std::string> output;
+    int return_value;
+
+    ztd::wait_pool wp_output;
+    ztd::wait_pool wp_finish;
+
+  private:
+    static void run_process(shc* p);
+  };
+
 }
 
 #endif //SHELL_HPP

@@ -1,5 +1,7 @@
 #include "shell.hpp"
 
+#include <thread>
+
 #include <unistd.h>
 #include <stdlib.h>
 #include <strings.h>
@@ -12,6 +14,11 @@ std::string ztd::sh(const std::string& command, bool to_console)
   return ztd::shp(command, to_console).first;
 }
 
+int ztd::shr(const std::string& command)
+{
+  return WEXITSTATUS(system(command.c_str()));
+}
+
 std::pair<std::string, int> ztd::shp(const std::string& command, bool to_console)
 {
   std::string ret;
@@ -21,12 +28,11 @@ std::pair<std::string, int> ztd::shp(const std::string& command, bool to_console
   while (getline(&buff, &buff_size, stream) > 0)
   {
     if(to_console)
-    {
       printf("%s", buff);
-    }
+
     ret += buff;
   }
-  return std::make_pair(ret, pclose(stream));
+  return std::make_pair(ret, WEXITSTATUS(pclose(stream)));
 }
 
 FILE* ztd::popen2(const char* command, const char* type, int* pid)
@@ -97,4 +103,83 @@ int ztd::pclose2(FILE* fp, pid_t pid)
     }
 
     return stat;
+}
+
+// SHC
+
+ztd::shc::shc(std::string const& cmd, bool const cout)
+{
+  this->command=cmd;
+  this->to_console=cout;
+}
+ztd::shc::~shc()
+{
+  if(this->running)
+    this->kill_int();
+}
+
+void ztd::shc::run()
+{
+  std::thread(ztd::shc::run_process, this).detach();
+}
+
+int ztd::shc::kill_int()
+{
+  if(running)
+    return kill(this->pid, SIGINT);
+  else
+    return 1;
+}
+
+void ztd::shc::wait_output()
+{
+  while(this->output.size() <= 0)
+    this->wp_output.wait();
+}
+
+std::string ztd::shc::get_output()
+{
+  if(output.size() > 0)
+  {
+    std::string ret = this->output.front();
+    this->output.pop();
+    return ret;
+  }
+  else
+    return "";
+}
+
+void ztd::shc::wait_finish()
+{
+  while(this->running)
+    this->wp_finish.wait();
+}
+
+void ztd::shc::run_process(shc* p)
+{
+  if(p->running)
+    return;
+
+  char* buff = NULL;
+  size_t buff_size = 0;
+  int pid = 0;
+
+  FILE *stream = ztd::popen2(p->command.c_str(), "r", &pid);
+  p->pid = pid;
+  p->running = true;
+
+  std::string ln;
+  while ( getline(&buff, &buff_size, stream) > 0 ) //retrieve device lines
+  {
+    if(p->to_console)
+      printf("%s", buff);
+
+    ln = std::string(buff, buff_size);
+    p->output.push(ln);
+    p->wp_output.notify_all();
+  }
+
+  p->running = false;
+  p->wp_finish.notify_all();
+  p->return_value = ztd::pclose2(stream, pid);
 }

@@ -58,4 +58,4 @@ clean:
 	rm $(ODIR)/*.o $(ODIR_SHARED)/*.o
 
 clear:
-	rm libztd.a libztd.so
+	rm -rd libztd.a libztd.so doc
