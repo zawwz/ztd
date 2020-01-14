@@ -159,7 +159,7 @@ ztd::option* ztd::option_set::find(const std::string& str)
   return nullptr;
 }
 
-std::vector<std::string> ztd::option_set::process(std::vector<std::string> arguments, bool ignore_numbers)
+std::vector<std::string> ztd::option_set::process(std::vector<std::string> arguments, bool ignore_numbers, bool stop_on_argument)
 {
   std::vector<std::string> out;
   unsigned int i=0;
@@ -217,6 +217,8 @@ std::vector<std::string> ztd::option_set::process(std::vector<std::string> argum
         {
           while(it!=arguments.end() && (*it).size()>i)
             i++;
+          if(stop_on_argument)
+            return std::vector<std::string>(it, arguments.end());
           out.push_back(*it);
         }
         else
@@ -266,6 +268,8 @@ std::vector<std::string> ztd::option_set::process(std::vector<std::string> argum
     }
     else
     {
+      if(stop_on_argument)
+        return std::vector<std::string>(it, arguments.end());
       out.push_back(*it);
     }
     if(it == arguments.end())

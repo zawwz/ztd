@@ -141,14 +141,16 @@ namespace ztd
     /*!
       If errors are encountered, exceptions option_error are thrown
       @param arguments vector of string containing arguments and options
-      @return Leftover arguments that are not options\n
+      @param ignore_numbers negative numbers are not considered as options
+      @param stop_on_argument stop processing when encountering a non-option argument
+      @return if @a stop_on_argument unprocessed arguments\n else leftover arguments that are not options\n
     */
-    std::vector<std::string> process(std::vector<std::string> arguments, bool ignore_numbers=false);
+    std::vector<std::string> process(std::vector<std::string> arguments, bool ignore_numbers=false, bool stop_on_argument=false);
     //! @brief Process arguments through the option set
     /*!
-      calls process(std::vector<std::string> arguments)
+      calls process(std::vector<std::string> arguments, bool ignore_numbers, bool stop_on_argument)
     */
-    inline std::vector<std::string> process(int argc, char** argv, bool ignore_numbers=false) { return this->process(ztd::argVector(argc, argv), ignore_numbers); }
+    inline std::vector<std::string> process(int argc, char** argv, bool ignore_numbers=false, bool stop_on_argument=false) { return this->process(ztd::argVector(argc, argv), ignore_numbers, stop_on_argument); }
 
     //! @brief Get option with char name
     /*! @see option* find(char c)
