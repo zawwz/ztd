@@ -6,9 +6,10 @@
 ztd::option_error::option_error(error_type type, const std::string& option)
 {
   opt=option;
+  errtype=type;
   switch(type)
   {
-    case unknown_option : msg = "Unkown option: " + opt; break;
+    case unknown_option : msg = "Unknown option: " + opt; break;
     case takes_no_arg : msg = "Option " + opt + " doesn't take an argument"; break;
     case missing_arg : msg = "Option " + opt + " needs an argument"; break;
   }
