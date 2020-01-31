@@ -143,14 +143,15 @@ namespace ztd
       @param arguments vector of string containing arguments and options
       @param ignore_numbers negative numbers are not considered as options
       @param stop_on_argument stop processing when encountering a non-option argument
+      @param ignore_unknown don't throw exceptions on unknown options, instead append to return arguments
       @return if @a stop_on_argument unprocessed arguments\n else leftover arguments that are not options\n
     */
-    std::vector<std::string> process(std::vector<std::string> arguments, bool ignore_numbers=false, bool stop_on_argument=false);
+    std::vector<std::string> process(std::vector<std::string> arguments, bool ignore_numbers=false, bool stop_on_argument=false, bool ignore_unknown=false);
     //! @brief Process arguments through the option set
     /*!
-      calls process(std::vector<std::string> arguments, bool ignore_numbers, bool stop_on_argument)
+      @see process(std::vector<std::string> arguments, bool ignore_numbers, bool stop_on_argument, bool ignore_unknown)
     */
-    inline std::vector<std::string> process(int argc, char** argv, bool ignore_numbers=false, bool stop_on_argument=false) { return this->process(ztd::argVector(argc, argv), ignore_numbers, stop_on_argument); }
+    inline std::vector<std::string> process(int argc, char** argv, bool ignore_numbers=false, bool stop_on_argument=false, bool ignore_unknown=false) { return this->process(ztd::argVector(argc, argv), ignore_numbers, stop_on_argument, ignore_unknown); }
 
     //! @brief Get option with char name
     /*! @see option* find(char c)
