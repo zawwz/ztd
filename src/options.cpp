@@ -246,7 +246,7 @@ std::vector<std::string> ztd::option_set::process(std::vector<std::string> argum
               if(!ignore_unknown)
                 throw ztd::option_error(ztd::option_error::unknown_option, std::string("-") + (*it)[i] );
             // add to ret if ignore
-            ropt += *it;
+            ropt += (*it)[i];
             }
             else if(popt->takesArgument) // needs arg
             {
