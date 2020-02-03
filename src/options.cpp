@@ -248,7 +248,7 @@ std::vector<std::string> ztd::option_set::process(std::vector<std::string> argum
             // add to ret if ignore
             ropt += *it;
             }
-            if(popt->takesArgument) // needs arg
+            else if(popt->takesArgument) // needs arg
             {
               i++;
               if((*it).size()<=i) // finishes here
