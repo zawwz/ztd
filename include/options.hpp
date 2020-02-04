@@ -157,7 +157,7 @@ namespace ztd
     /*! @see option* find(char c)
     */
     option& operator[](const char c) { return *this->find(c); }
-    //! @brief Get option with char name
+    //! @brief Get option with string name
     /*! @see option* find(const std::string& str);
     */
     option& operator[](const std::string& str) { return *this->find(str); }
