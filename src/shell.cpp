@@ -181,5 +181,5 @@ void ztd::shc::run_process(shc* p)
 
   p->running = false;
   p->wp_finish.notify_all();
-  p->return_value = ztd::pclose2(stream, pid);
+  p->return_value = WEXITSTATUS(ztd::pclose2(stream, pid));
 }
