@@ -151,6 +151,8 @@ namespace ztd
     @return String value of the whole chunk data
     */
     std::string strval(unsigned int alignment=0, std::string const& aligner="\t") const;
+    //! @brief alias for strval()
+    inline std::string str(unsigned int alignment=0, std::string const& aligner="\t") const { return strval(alignment, aligner); }
 
     void addToMap(std::string const& name, chunkdat const& val);
     void addToMap(std::vector<std::pair<std::string, chunkdat>> const& vec);
@@ -230,22 +232,26 @@ namespace ztd
     inline chunkdat& operator[](const unsigned int a) const                             { return subChunkRef(a); }
     //! @brief Set chunk data and return *this. @see set(chunkdat const& in)
     inline chunkdat& operator=(chunkdat const& a)                                       { set(a); return *this; }
-    //! @brief add and return *this.            @see add(std::string const& name, chunkdat const& val)
+    //! @brief add() and return *this.            @see add(std::string const& name, chunkdat const& val)
     inline chunkdat& operator+=(std::pair<std::string, chunkdat> const& a)              { add(a.first, a.second); return *this; }
-    //! @brief add and return *this.            @see add(std::vector<std::pair<std::string, chunkdat>> const& vec)
+    //! @brief add() and return *this.            @see add(std::vector<std::pair<std::string, chunkdat>> const& vec)
     inline chunkdat& operator+=(std::vector<std::pair<std::string, chunkdat>> const& a) { add(a); return *this; }
-    //! @brief add and return *this.            @see add(chunkdat const& val)
+    //! @brief add() and return *this.            @see add(chunkdat const& val)
     inline chunkdat& operator+=(chunkdat const& a)                                      { add(a); return *this; }
-    //! @brief add and return *this.            @see add(std::vector<chunkdat> const& vec)
+    //! @brief add() and return *this.            @see add(std::vector<chunkdat> const& vec)
     inline chunkdat& operator+=(std::vector<chunkdat> const& a)                         { add(a); return *this; }
     //! @brief concatenate and return *this.    @see concatenate(chunkdat const& chk)
     inline chunkdat& operator*=(chunkdat const& a)                                      { concatenate(a); return *this; }
-    //! @brief remove and return *this.         @see remove(const std::string& key)
+    //! @brief erase() and return *this.         @see remove(const std::string& key)
     inline chunkdat& operator-=(const std::string& key)     { erase(key); return *this; }
-    //! @brief remove and return *this.         @see remove(const unsigned int index)
+    //! @brief erase() and return *this.         @see remove(const unsigned int index)
     inline chunkdat& operator-=(const unsigned int index)   { erase(index); return *this; }
 
     //add operator+ and operator*
+
+    //! @brief give strval
+    inline operator std::string() const { return this->strval(); }
+//    inline operator const char*() const { return this->strval().c_str(); }
 
 
   protected:
@@ -254,6 +260,8 @@ namespace ztd
 
     chunk_abstract* m_achunk;
   };
+
+  inline bool operator==(const chunkdat& a, const char* b) { return a.strval() == b; }
 
   //! @brief add
   inline chunkdat operator+(const chunkdat& a, const std::pair<std::string, chunkdat>& b)               { chunkdat ret(a); ret += b; return ret; }
@@ -366,6 +374,9 @@ namespace ztd
 
     //! @brief Is a read char
     static bool isRead(char in);
+
+    inline operator chunkdat() const { return *m_dataChunk; }
+//    inline operator std::string() const { if(m_dataChunk!=nullptr) return m_dataChunk->strval(); else return ""; }
 
   private:
     //functions
