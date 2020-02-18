@@ -167,130 +167,129 @@ std::vector<std::string> ztd::option_set::process(std::vector<std::string> argum
   option_sequence.clear();
   for( auto it = arguments.begin(); it!=arguments.end() ; it++ )
   {
-    // arg is option
-    if( (*it).size()>0 && (*it)[0]=='-' )
-    {
 
-      // -- opt
-      if((*it).size()>1 && (*it)[1]=='-')
+    // arg is -- option and not empty
+    if( it->size()>2 && it->substr(0,2) == "--" )
+    {
+      std::size_t eqn=it->find('=');
+      if(eqn == std::string::npos) // no arg =
       {
-        std::size_t eqn=(*it).find('=');
-        if(eqn == std::string::npos) // no arg =
+        ztd::option* popt = this->find( it->substr(2,eqn-2) );
+        if(popt == nullptr) // unknown -- opt
         {
-          ztd::option* popt = this->find( (*it).substr(2,eqn-2) );
-          if(popt == nullptr) // unknown -- opt
-          {
-            if(!ignore_unknown)
-              throw ztd::option_error(ztd::option_error::unknown_option, "--" + (*it).substr(2,eqn-2));
-            // add to ret if ignore
-            out.push_back(*it);
-          }
-          else if(popt->takesArgument) // arg needed
-          {
-            if( ++it == arguments.end() ) // no arg given
-            {
-              throw ztd::option_error(ztd::option_error::missing_arg, "--" + popt->strName);
-            }
-            // take next arg as arg
-            popt->activated = true;
-            popt->argument = (*it);
-            option_sequence.push_back(*popt);
-          }
-          else // no arg needed
-          {
-            popt->activated = true;
-            option_sequence.push_back(*popt);
-          }
+          if(!ignore_unknown)
+            throw ztd::option_error(ztd::option_error::unknown_option, "--" + it->substr(2,eqn-2));
+          // add to ret if ignore
+          out.push_back(*it);
         }
-        else // there is =
+        else if(popt->takesArgument) // arg needed
         {
-          ztd::option* popt = this->find( (*it).substr(2,eqn-2) );
-          if(popt == nullptr) // unknown -- opt
-          {
-            if(!ignore_unknown)
-              throw ztd::option_error(ztd::option_error::unknown_option, "--" +(*it).substr(2,eqn-2));
-            // add to ret if ignore
-            out.push_back(*it);
-          }
-          if(!popt->takesArgument) // opt doesn't take arg
-          {
-            throw ztd::option_error(ztd::option_error::takes_no_arg, "--" + popt->strName);
-          }
-          // take = as arg
+          if( ++it == arguments.end() ) // no arg given
+            throw ztd::option_error(ztd::option_error::missing_arg, "--" + popt->strName);
+          // take next arg as arg
           popt->activated = true;
-          popt->argument = (*it).substr(eqn+1,(*it).size()-eqn-1 );
+          popt->argument = (*it);
+          option_sequence.push_back(*popt);
+        }
+        else // no arg needed
+        {
+          popt->activated = true;
           option_sequence.push_back(*popt);
         }
       }
-      else // - opt
+      else // there is =
       {
-        i=1;
-        if( ignore_numbers && (*it)[i] >= '0' && (*it)[i] <= '9') // ignore numbers : add as ret arg
+        ztd::option* popt = this->find( it->substr(2,eqn-2) ); // get option
+        if(popt == nullptr) // unknown -- opt
         {
-          while(it!=arguments.end() && (*it).size()>i)
-            i++;
-          if(stop_on_argument)
-            return std::vector<std::string>(it, arguments.end());
+          if(!ignore_unknown)
+            throw ztd::option_error(ztd::option_error::unknown_option, "--" +it->substr(2,eqn-2));
+          // add to ret if ignore
           out.push_back(*it);
         }
-        else // opt
+        else
         {
-          ztd::option* popt=nullptr;
-          bool tstop=false;
-          std::string ropt; // ignored opts
-          while( !tstop && it!=arguments.end() && (*it).size()>i ) // iterate all chars of arg
-          {
-            popt=this->find((*it)[i]);
-            if(popt==nullptr) // unknown opt
-            {
-              if(!ignore_unknown)
-                throw ztd::option_error(ztd::option_error::unknown_option, std::string("-") + (*it)[i] );
-            // add to ret if ignore
-            ropt += (*it)[i];
-            }
-            else if(popt->takesArgument) // needs arg
-            {
-              i++;
-              if((*it).size()<=i) // finishes here
-              {
-                if( ++it == arguments.end() ) // no arg given
-                {
-                  throw ztd::option_error(ztd::option_error::missing_arg, std::string("-") +  popt->charName );
-                }
-                // take next arg as arg
-                popt->activated = true;
-                popt->argument = (*it);
-                option_sequence.push_back(*popt);
-                tstop = true;
-              }
-              else // take rest as arg
-              {
-                if( (*it)[i] == '=') // ignore = char
-                  i++;
-                popt->argument = (*it).substr(i , (*it).size()-i );
-                popt->activated = true;
-                option_sequence.push_back(*popt);
-                tstop=true;
-              }
-            }
-            else // needs no arg
-            {
-              popt->activated = true;
-              option_sequence.push_back(*popt);
-            }
-            i++;
-          } //while
-
-          if(ropt.size() > 0) // ignored opts: append them to ret
-            out.push_back("-" + ropt);
-
-        } // if not number
+          if(!popt->takesArgument) //option doesn't take arg
+            throw ztd::option_error(ztd::option_error::takes_no_arg, "--" + popt->strName);
+          // take = as arg
+          popt->activated = true;
+          popt->argument = it->substr(eqn+1,it->size()-eqn-1 );
+          option_sequence.push_back(*popt);
+        }
       }
     }
+    //arg is - option and not empty
+    else if(it->size()>1 && (*it)[0] == '-' && (*it)[1] != '-')
+    {
+      i=1;
+      if( ignore_numbers && (*it)[i] >= '0' && (*it)[i] <= '9') // ignore numbers : add as ret arg
+      {
+        while(it!=arguments.end() && it->size()>i)
+          i++;
+        if(stop_on_argument)
+          return std::vector<std::string>(it, arguments.end());
+        out.push_back(*it);
+      }
+      else // opt
+      {
+        ztd::option* popt=nullptr;
+        bool tstop=false;
+        std::string ropt; // ignored opts
+        while( !tstop && it!=arguments.end() && it->size()>i ) // iterate all chars of arg
+        {
+          popt=this->find((*it)[i]);
+          if(popt==nullptr) // unknown opt
+          {
+            if(!ignore_unknown)
+              throw ztd::option_error(ztd::option_error::unknown_option, std::string("-") + (*it)[i] );
+          // add to ret if ignore
+          ropt += (*it)[i];
+          }
+          else if(popt->takesArgument) // needs arg
+          {
+            i++;
+            if(it->size()<=i) // finishes here
+            {
+              if( ++it == arguments.end() ) // no arg given
+                throw ztd::option_error(ztd::option_error::missing_arg, std::string("-") +  popt->charName );
+              // take next arg as arg
+              popt->activated = true;
+              popt->argument = (*it);
+              option_sequence.push_back(*popt);
+              tstop = true;
+            }
+            else // take rest as arg
+            {
+              if( (*it)[i] == '=') // ignore = char
+                i++;
+              popt->argument = it->substr(i , it->size()-i );
+              popt->activated = true;
+              option_sequence.push_back(*popt);
+              tstop=true;
+            }
+          }
+          else // needs no arg
+          {
+            popt->activated = true;
+            option_sequence.push_back(*popt);
+          }
+          i++;
+        } //while
+
+        if(ropt.size() > 0) // ignored opts: append them to ret
+          out.push_back("-" + ropt);
+
+      } // if not number
+    } // if opt
     else
     {
       if(stop_on_argument)
         return std::vector<std::string>(it, arguments.end());
+      if( *it == "--" ) // empty -- : stop here
+      {
+        out.insert(out.end(), ++it, arguments.end());
+        return out;
+      }
       out.push_back(*it);
     }
     if(it == arguments.end())
