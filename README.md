@@ -2,9 +2,9 @@
 
 zawz's standard C++ library. Tools for easier coding
 
-## Documentation
-
-Use ``doxygen`` to generate HTML documentation files
+Online Documentation: (http://zawz.net/doc/ztd)  
+Github: (http://github.com/zawwz/ztd)
+ZFD format details: [zfd.md](filedat.md)
 
 ## Building
 
@@ -14,3 +14,8 @@ Use ``doxygen`` to generate HTML documentation files
 ## Installing
 
 ``sudo make install``
+
+## Generating documentation
+
+Use ``doxygen`` to generate HTML documentation files
+
