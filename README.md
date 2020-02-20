@@ -2,9 +2,9 @@
 
 zawz's standard C++ library. Tools for easier coding
 
-Online Documentation: (http://zawz.net/doc/ztd)  
-Github: (http://github.com/zawwz/ztd)
-ZFD format details: [zfd.md](filedat.md)
+Online Documentation: http://zawz.net/doc/ztd  
+Github: http://github.com/zawwz/ztd  
+ZFD format details: [filedat.md](filedat.md)
 
 ## Building
 
