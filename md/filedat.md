@@ -1,9 +1,9 @@
-# ZFD format details
+# ZFD format {#zfd}
 
-The format is composed of infinitely concatenable "chunks". There a three types of chunks:  
--Map chunk     : between braces    {}  
--List chunk    : between brackets  []  
--String value
+ZFD is composed of infinitely concatenable "chunks". There a three types of chunks:  
+- Map chunk     : between braces    {}  
+- List chunk    : between brackets  []  
+- String value
 
 Formatting is ignored, all spaces will be ignored unless they are part of a value.  
 Comments can be written with //, ends at end of line
