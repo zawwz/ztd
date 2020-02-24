@@ -596,6 +596,49 @@ void ztd::chunkdat::set(const char* in, const int in_size, int offset, filedat* 
   }
 }
 
+void ztd::chunkdat::set(ztd::chunkdat const& in)
+{
+  // reset everything
+  this->clear();
+  // trace info
+  m_offset=in.m_offset;
+  m_parent=in.m_parent;
+
+  // case copy
+  if(in.type()==ztd::chunk_abstract::map) //map
+  {
+    ztd::chunk_map* cc = dynamic_cast<chunk_map*>(in.getp());
+    ztd::chunk_map* tch = new ztd::chunk_map();
+    for(auto it : cc->values)
+    {
+      tch->values.insert( std::make_pair(it.first, it.second->pcopy()) );
+    }
+  }
+  else if(in.type()==ztd::chunk_abstract::list) //list
+  {
+    ztd::chunk_list* cc = dynamic_cast<chunk_list*>(in.getp());
+    ztd::chunk_list* tch = new ztd::chunk_list();
+    for(auto it : cc->list)
+    {
+      tch->list.push_back(it->pcopy());
+    }
+  }
+  else if(in.type()==ztd::chunk_abstract::string) //string
+  {
+    ztd::chunk_string* cc = dynamic_cast<chunk_string*>(in.getp());
+    ztd::chunk_string* tch = new ztd::chunk_string();
+    tch->val = std::string(cc->val);
+    m_achunk = tch;
+  }
+  else //none
+  {
+    //already cleared: do nothing
+    return;
+  }
+
+  this->set(in.strval(), in.offset(), in.parent());
+}
+
 void ztd::chunkdat::addToMap(std::string const& name, chunkdat const& val)
 {
   if(this->type()==ztd::chunk_abstract::map)

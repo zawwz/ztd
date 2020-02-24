@@ -105,7 +105,8 @@ namespace ztd
     chunkdat(const char* in);
     //! @brief Constructor with initial value
     chunkdat(std::string const& in);
-    chunkdat(const char* in, const int in_size,  int offset=0, filedat* data=nullptr);
+    //! @brief Constructor with initial value
+    chunkdat(const char* in, const int in_size,  int offset=0, filedat* parent=nullptr);
     //! @brief Constructor with copy
     chunkdat(chunkdat const& in);
     //dtor
@@ -137,12 +138,17 @@ namespace ztd
     /*!
     @param in String data
     @param offset Used for debugging
-    @param data Used for debuggingy
+    @param data Used for debugging
     */
-    inline void set(std::string const& in, int offset=0, filedat* data=nullptr) { this->set(in.c_str(), in.size(), offset, data); }
+    inline void set(std::string const& in, int offset=0, filedat* parent=nullptr) { this->set(in.c_str(), in.size(), offset, parent); }
+    //! @brief Copy chunk data
+    void set(chunkdat const& in);
 
-    //! @brief Copy chunk's data
-    inline void set(chunkdat const& in) { this->set(in.strval(), in.offset(), in.parent()); } // TODO
+    //! @brief Create a copy of the chunk
+    inline chunkdat copy() { return chunkdat(*this); }
+    //! @brief Create a pointed copy of the chunk. This needs to be deleted manually
+    inline chunkdat* pcopy() { return new chunkdat(*this); }
+
 
     //! @brief Get string value of data
     /*!
