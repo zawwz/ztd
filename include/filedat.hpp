@@ -14,7 +14,8 @@
 /*! @file filedat.hpp
 *  @brief Storing and reading data
 *
-* Easily organize data in a JSON-like file format
+* Easily organize data in a JSON-like file format.
+* See [ZFD format](@ref zfd)
 */
 
 namespace ztd
@@ -131,7 +132,7 @@ namespace ztd
     @param in C string data
     @param in_size Size of the string data
     @param offset Used for debugging
-    @param data Used for debugging
+    @param parent Used for debugging
     */
     void set(const char* in, const int in_size, int offset=0, filedat* parent=nullptr);
     //! @brief Set data
