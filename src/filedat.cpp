@@ -1,5 +1,7 @@
 #include "filedat.hpp"
 
+#include <algorithm>
+
 // Function code
 bool ztd::filedat::isRead(char in)
 {
@@ -14,6 +16,17 @@ static std::string repeatString(const std::string& str, const unsigned int n)
   return ret;
 }
 
+static std::string escape(std::string str, const char c)
+{
+  size_t pos = str.find(c);
+  while(pos != std::string::npos)
+  {
+    str.insert(pos, "\\");
+    pos += 2;
+    pos = str.find(c, pos);
+  }
+  return str;
+}
 
 void ztd::printErrorIndex(const char* in, const int index, const std::string& message, const std::string& origin)
 {
@@ -55,11 +68,52 @@ void ztd::printErrorIndex(const char* in, const int index, const std::string& me
   }
 }
 
-void ztd::printFormatException(ztd::format_error& exc)
+std::string ztd::filedat::removeComments(std::string str)
 {
-  ztd::printErrorIndex(exc.data(), exc.where(), exc.what(), exc.origin());
-}
+  uint32_t i=0;
+  while(i < str.size())
+  {
+    if( str[i] == '"') // double quotes
+    {
+      uint32_t j=i;
+      i++;
+      while(i < str.size() && str[i]!='"') // until end of quote
+      {
+        if(i+1 < str.size() && str[i] == '\\' && str[i+1] == '"') //escaped quote
+        i++; //ignore backslash
 
+        i++; // add char and increment
+      }
+      if(i >= str.size()) // quote didn't end
+        throw ztd::format_error("Double quote doesn't close", "", str, j);
+      i++;
+    }
+    else if( str[i] == '\'') // single quotes
+    {
+      uint32_t j=i;
+      i++;
+      while(i < str.size() && str[i]!='\'') // until end of quote
+      {
+        if(i+1 < str.size() && str[i] == '\\' && str[i+1] == '\'') //escaped quote
+          i++; //ignore backslash
+
+        i++; // add char
+      }
+      if(i >= str.size()) // quote didn't end
+        throw ztd::format_error("Single quote doesn't close", "", str, j);
+      i++;
+    }
+    else if(str[i] == '#' || (i+1 < str.size() && str.substr(i,2) == "//")) // comment
+    {
+      uint32_t j=i;
+      i = str.find('\n', i);
+      str.erase(j,i-j);
+      i=j;
+    }
+    i++;
+  }
+  return str;
+}
 
 ztd::filedat::filedat()
 {
@@ -75,7 +129,7 @@ ztd::filedat::filedat(std::string const& in)
 ztd::filedat::~filedat()
 {
   if(m_dataChunk!=nullptr)
-  delete m_dataChunk;
+    delete m_dataChunk;
 }
 
 void ztd::filedat::clear()
@@ -92,18 +146,18 @@ bool ztd::filedat::readTest() const
 {
   std::ifstream stream(m_filePath);
   if(!stream)
-  return false;
+    return false;
   else
-  return true;
+    return true;
 }
 
 void ztd::filedat::import_file(const std::string& path)
 {
   if(path != "")
-  m_filePath=path;
+    m_filePath=path;
   std::ifstream st(m_filePath);
   if(!st)
-  throw std::runtime_error("Cannot read file '" + m_filePath + '\'');
+    throw std::runtime_error("Cannot read file '" + m_filePath + '\'');
 
   this->clear();
   std::string line;
@@ -141,11 +195,11 @@ bool ztd::filedat::export_file(std::string const& path, std::string const& align
 {
   std::ofstream stream;
   if(path=="")
-  stream.open(m_filePath);
+    stream.open(m_filePath);
   else
-  stream.open(path);
+    stream.open(path);
   if(!stream)
-  return false;
+    return false;
   stream << this->strval(aligner);
   return true;
 }
@@ -153,9 +207,9 @@ bool ztd::filedat::export_file(std::string const& path, std::string const& align
 std::string ztd::filedat::strval(std::string const& aligner) const
 {
   if(m_dataChunk == nullptr)
-  return "";
+    return "";
   else
-  return m_dataChunk->strval(0, aligner);
+    return m_dataChunk->strval(0, aligner);
 }
 
 void ztd::filedat::generateChunk()
@@ -163,436 +217,402 @@ void ztd::filedat::generateChunk()
   try
   {
     if(m_dataChunk != nullptr)
-    delete m_dataChunk;
-    m_dataChunk = new ztd::chunkdat(m_data.c_str(), m_data.size(), 0, this);
+      delete m_dataChunk;
+    m_data = this->removeComments(m_data);
+    m_dataChunk = new ztd::chunkdat(m_data, 0, nullptr);
   }
   catch(ztd::format_error& e)
   {
+    m_dataChunk = nullptr;
     throw ztd::format_error(e.what(), m_filePath, m_data, e.where());
   }
 }
 
-static std::string _getname(const char* in, const int in_size, int* start, int* val_size, int* end)
+std::pair<std::string, size_t> _skip(const std::string& str)
 {
-  int i=0;
+  size_t i=0;
 
-  *start = in_size; //default no value
-  *end = in_size; //default end
-  *val_size=0; //default no value
-
-  while(i<in_size)
+  //skip to val start
+  while( i < str.size() )
   {
-    if(i+1<in_size && in[i] == '/' && in[i+1] == '/')
-    while(i<in_size && in[i] != '\n')
-    i++;
-
-    if(ztd::filedat::isRead(in[i]))
-    break;
-
+    // start of value
+    if(ztd::filedat::isRead(str[i]))
+      break;
     i++;
   }
-  if(i >= in_size) //ends without value
-  return "";
-
-  int j=i; //name start
-  while(i<in_size && in[i] != '=') //skip to =
-  i++;
-  if(i >= in_size) //no =
-  throw ztd::format_error("Tag has no value", "", std::string(in, in_size), j);
-
-  if(i == j) //nothing preceding =
-  throw ztd::format_error("Value has no tag", "", std::string(in, in_size), i);
-
-  int k=i-1; //name end
-  while( !ztd::filedat::isRead(in[k]) )
-  k--;
-  std::string name=std::string(in+j, k-j+1);
-
-  i++;
-  while(i < in_size && !ztd::filedat::isRead(in[i]))
-  i++;
-  if(i >= in_size) //no value
-  {
-    *start=i;
-    *val_size=0;
-    *end=i;
-    return name;
-  }
-  if(in[i] == '\"') //"" val
-  {
-    *start=i; //value starts
-    j=1; //size
-    while(i+j < in_size && in[i+j]!='\"')
-    {
-      if(in[i+j]=='\\')
-      j++;
-      j++;
-    }
-    if(i+j >= in_size) // no closing "
-    throw ztd::format_error("Double quote does not close", "", std::string(in, in_size), i-1);
-    j++;
-    *val_size=j;
-    *end=i+j;
-    return name;
-  }
-  if(in[i] == '\'') //"" val
-  {
-    *start=i; //value starts
-    j=1; //size
-    while(i+j < in_size && in[i+j]!='\'')
-    {
-      if(in[i+j]=='\\')
-      j++;
-      j++;
-    }
-    if(i+j >= in_size) // no closing '
-    throw ztd::format_error("Single quote does not close", "", std::string(in, in_size), i-1);
-    j++;
-    *val_size=j;
-    *end=i+j;
-    return name;
-  }
-  if(in[i] == '{')
-  {
-    *start=i;
-    j=1;
-    int counter=0;
-    while( i+j < in_size && !( counter == 0 && in[i+j]=='}') )
-    {
-      if(i+j+1<in_size && in[i+j] == '/' && in[i+j+1] == '/')
-      while(i+j<in_size && in[i+j] != '\n')
-      j++;
-      if(in[i+j]=='\\')
-      j++;
-      if(in[i+j]=='{')
-      counter++;
-      if(in[i+j]=='}')
-      counter--;
-      j++;
-    }
-    if(i+j >= in_size) //reached end without closing
-    throw ztd::format_error("Brace does not close", "", std::string(in, in_size), i);
-    j++;
-    *val_size=j;
-    *end=i+j;
-    return name;
-  }
-  if(in[i] == '[')
-  {
-    *start=i;
-    j=1;
-    int counter=0;
-    while( i+j < in_size && !( counter == 0 && in[i+j]==']') )
-    {
-      if(i+j+1<in_size && in[i+j] == '/' && in[i+j+1] == '/')
-      while(i+j<in_size && in[i+j] != '\n')
-      j++;
-      if(in[i+j]=='\\')
-      j++;
-      if(in[i+j]=='[')
-      counter++;
-      if(in[i+j]==']')
-      counter--;
-      j++;
-    }
-    if(i+j >= in_size) //reached end without closing
-    throw ztd::format_error("Bracket does not close", "", std::string(in, in_size), i);
-    j++;
-    *val_size=j;
-    *end=i+j;
-    return name;
-  }
-  { // no encapsulation: go to end of line
-    *start=i; //value starts
-    j=0; //size
-    while(i+j < in_size && in[i+j]!='\n')
-    {
-      if(in[i]+j=='\\')
-      j++;
-      j++;
-    }
-    while( !ztd::filedat::isRead(in[i+j]) )
-    j--;
-    *val_size=j+1;
-    *end=i+j+1;
-    return name;
-  }
-
-  return name;
-}
-
-static std::string _getlist(const char* in, const int in_size, int* start, int* end)
-{
-  int i=0;
   std::string ret;
+  if(i < str.size())
+    ret = str.substr(i);
+  else
+  {
+    i=str.size();
+    ret="";
+  }
+  return std::make_pair(ret, i);
+}
 
-  while(i<in_size)
-  {
-    if(i+1<in_size && in[i] == '/' && in[i+1] == '/')
-    while(i<in_size && in[i] != '\n')
-    i++;
 
-    if(ztd::filedat::isRead(in[i]))
-    break;
+// TODO TODO TODO
+// value, rest, start of rest, start of value, delim found
+static std::tuple<std::string, std::string, int, int, bool> _getstrval(const std::string& str, const char delim=0, const char altdelim=0)
+{
+  std::string val;
 
-    i++;
+  //skip to start of val
+  size_t i = _skip(str).second;
+  int st = i;
+  bool delim_found=false;
+
+  // no value
+  if(i >= str.size())
+    return std::make_tuple("","",0,0,false);
+
+  while(i < str.size())
+  {
+    if( str[i] == '"') // double quotes
+    {
+      uint32_t j=i;
+      i++;
+      while(i < str.size() && str[i]!='"') // until end of quote
+      {
+        if(i+1 < str.size() && str[i] == '\\' && str[i+1] == '"') //escaped quote
+        i++; //ignore backslash
+
+        val.push_back(str[i++]); // add char and increment
+      }
+      if(i >= str.size()) // quote didn't end
+      throw ztd::format_error("Double quote doesn't close", "", str, j);
+      i++;
+    }
+    else if( str[i] == '\'') // single quotes
+    {
+      uint32_t j=i;
+      i++;
+      while(i < str.size() && str[i]!='\'') // until end of quote
+      {
+        if(i+1 < str.size() && str[i] == '\\' && str[i+1] == '\'') //escaped quote
+        i++; //ignore backslash
+
+        val += str[i++]; // add char
+      }
+      if(i >= str.size()) // quote didn't end
+      throw ztd::format_error("Single quote doesn't close", "", str, j);
+      i++;
+    }
+    if(str[i] == '{') // {} map
+    {
+      uint32_t counter=0;
+      uint32_t j=i;
+      val += str[i++]; // add the bracket to the value
+      while(i < str.size() && !(counter == 0 && str[i] == '}') )
+      {
+        if(str[i] == '}')
+          counter--;
+        else if(str[i] == '{')
+          counter++;
+        else if( str[i] == '"') // double quotes
+        {
+          uint32_t k=i;
+          val += str[i++];
+          while(i < str.size() && str[i]!='"') // until end of quote
+          {
+            if(i+1 < str.size() && str[i] == '\\' && str[i+1] == '"') //escaped quote
+              val += str[i++];
+            val += str[i++];
+          }
+          if(i >= str.size()) // quote didn't end
+            throw ztd::format_error("Double quote does not close", "", str, k);
+        }
+        else if( str[i] == '\'') // single quotes
+        {
+          uint32_t k=i;
+          val += str[i++];
+          while(i < str.size() && str[i]!='\'') // until end of quote
+          {
+            if(i+1 < str.size() && str[i] == '\\' && str[i+1] == '\'') //escaped quote
+              val += str[i++];
+            val += str[i++];
+          }
+          if(i >= str.size()) // quote didn't end
+            throw ztd::format_error("Single quote does not close", "", str, k);
+        }
+        val += str[i++];
+      }
+
+      if(i >= str.size()) //didn't close
+        throw ztd::format_error("Brace does not close", "", str, j);
+
+      val += str[i++]; // add brace
+    }
+    else if(str[i] == '[') // [] list
+    {
+      uint32_t counter=0;
+      uint32_t j=i;
+      val += str[i++]; // add the bracket to the value
+      while(i < str.size() && !(counter == 0 && str[i] == ']') )
+      {
+        if(str[i] == '[')
+          counter--;
+        else if(str[i] == ']')
+          counter++;
+        else if( str[i] == '"') // double quotes
+        {
+          uint32_t k=i;
+          val += str[i++];
+          while(i < str.size() && str[i]!='"') // until end of quote
+          {
+            if(i+1 < str.size() && str[i] == '\\' && str[i+1] == '"') //escaped quote
+              val += str[i++];
+            val += str[i++];
+          }
+          if(i >= str.size()) // quote didn't end
+            throw ztd::format_error("Double quote does not close", "", str, k);
+        }
+        else if( str[i] == '\'') // single quotes
+        {
+          uint32_t k=i;
+          val += str[i++];
+          while(i < str.size() && str[i]!='\'') // until end of quote
+          {
+            if(i+1 < str.size() && str[i] == '\\' && str[i+1] == '\'') //escaped quote
+              val += str[i++];
+            val += str[i++];
+          }
+          if(i >= str.size()) // quote didn't end
+            throw ztd::format_error("Single quote does not close", "", str, k);
+        }
+        val += str[i++];
+      }
+
+      if(i >= str.size()) //didn't close
+        throw ztd::format_error("Brace does not close", "", str, j);
+
+      val += str[i++]; // add bracket
+    }
+    else if(!ztd::filedat::isRead(str[i])) // non read char
+    {
+      std::string tval="";
+      if(delim == 0) // delim=0: stop at non read
+        break;
+      while(!ztd::filedat::isRead(str[i]) && !(str[i] == delim || str[i] == altdelim) ) // until read or delim
+        tval += str[i++];
+      if(str[i] == delim || str[i] == altdelim) // delim: stop
+      {
+        i++;
+        break;
+      }
+      val += tval;
+    }
+    else // read char
+    {
+      if(str[i] == delim || str[i] == altdelim) // delim: stop without adding delim
+      {
+        i++;
+        break;
+      }
+
+      val.push_back(str[i++]); //add char and increment
+    }
+  }
+  std::string ret;
+  if(i < str.size())
+  {
+    ret = str.substr(i);
+    delim_found=true;
+  }
+  else
+  {
+    while( val.size() > 0 && !ztd::filedat::isRead(val[val.size()-1]) )
+     val.pop_back();
+    ret = "";
+    delim_found=false;
+    i=str.size();
+  }
+  return std::make_tuple(val, ret, i, st, delim_found); // return
+}
+
+// key, value, rest, start of rest, start of value, start of key
+static std::tuple<std::string, std::string, std::string, int, int, int> _getkeyval(const std::string& in)
+{
+  std::string key, value, rstr;
+  std::tuple<std::string, std::string, int, int, bool> tup;
+  int dpos=-1, rpos=-1, valstart=-1, keystart=-1;
+  bool eq_found=false;
+
+  try // get key
+  {
+    tup=_getstrval(in, '=');
+    key=std::get<0>(tup);
+    rstr=std::get<1>(tup);
+    dpos=std::get<2>(tup);
+    keystart=std::get<3>(tup);
+    eq_found=std::get<4>(tup);
+  }
+  catch(ztd::format_error& e)
+  {
+    ztd::format_error(e.what(), e.origin(), in, e.where());
+    throw e;
+  }
+  if(key.size() > 0 && key[0] == ';') // ignore ; : new value
+  {
+    key.erase(key.begin());
+    return std::make_tuple("", "", key+value+rstr, keystart+1, -1, -1);
+  }
+  if(key == "" && _skip(rstr).first != "") // key is empty
+    throw ztd::format_error("Value has no Key", "", in, in.find(dpos) );
+  if(key != "" && !eq_found) // no delim
+    throw ztd::format_error("Key '"+key+"' has no value", "", in, keystart+key.size());
+
+  try // get value
+  {
+    tup=_getstrval(rstr, ';', '\n');
+    value=std::get<0>(tup);
+    rstr=std::get<1>(tup);
+    rpos=std::get<2>(tup);
+    valstart = std::get<3>(tup);
+  }
+  catch(ztd::format_error& e)
+  {
+    ztd::format_error(e.what(), e.origin(), in, dpos+1+e.where());
+    throw e;
   }
 
-  *start=i;
-  if(i >= in_size) //ends without value
-  {
-    *end = in_size;
-    return "";
-  }
-  if(in[i] == ',') //value is empty
-  {
-    *end=i+1;
-    return "";
-  }
+  int rr=-1;
+  if(rpos >= 0)
+    rr = dpos+rpos;
+  else
+    rr = in.size();
 
-  int j=0;
-  if(in[i] == '\"') //"" val
-  {
-    j=1; //size
-    while(i+j < in_size && in[i+j]!='\"')
-    {
-      if(in[i+j]=='\\')
-      j++;
-      j++;
-    }
-    if(i+j >= in_size) // no closing "
-    throw ztd::format_error("Double quote does not close", "", std::string(in, in_size), i-1);
-    j++;
-    ret = std::string(in+i, j);
-    *end=i+j;
-  }
-  else if(in[i] == '\'') //"" val
-  {
-    j=1; //size
-    while(i+j < in_size && in[i+j]!='\'')
-    {
-      if(in[i+j]=='\\')
-      j++;
-      j++;
-    }
-    if(i+j >= in_size) // no closing '
-    throw ztd::format_error("Single quote does not close", "", std::string(in, in_size), i-1);
-    j++;
-    ret = std::string(in+i, j);
-    *end=i+j;
-  }
-  else if(in[i] == '{')
-  {
-    j=1;
-    int counter=0;
-    while( i+j < in_size && !( counter == 0 && in[i+j]=='}') )
-    {
-      if(i+j+1<in_size && in[i+j] == '/' && in[i+j+1] == '/')
-      while(i+j<in_size && in[i+j] != '\n')
-      j++;
-      if(in[i+j]=='\\')
-      j++;
-      if(in[i+j]=='{')
-      counter++;
-      if(in[i+j]=='}')
-      counter--;
-      j++;
-    }
-    if(i+j >= in_size) //reached end without closing
-    throw ztd::format_error("Brace does not close", "", std::string(in, in_size), i);
-    j++;
-    ret = std::string(in+i, j);
-    *end=i+j;
-  }
-  else if(in[i] == '[')
-  {
-    j=1;
-    int counter=0;
-    while( i+j < in_size && !( counter == 0 && in[i+j]==']') )
-    {
-      if(i+j+1<in_size && in[i+j] == '/' && in[i+j+1] == '/')
-      while(i+j<in_size && in[i+j] != '\n')
-      j++;
-      if(in[i+j]=='\\')
-      j++;
-      if(in[i+j]=='[')
-      counter++;
-      if(in[i+j]==']')
-      counter--;
-      j++;
-    }
-    if(i+j >= in_size) //reached end without closing
-    throw ztd::format_error("Bracket does not close", "", std::string(in, in_size), i);
-    j++;
-    ret = std::string(in+i, j);
-    *end=i+j;
-  }
-  else // no encapsulation: go to next ,
-  {
-    j=0; //size
-    while(i+j < in_size && in[i+j]!=',')
-    {
-      if(in[i+j]=='\\')
-      j++;
-      j++;
-    }
-    if(i+j < in_size)
-    {
-      while( !ztd::filedat::isRead(in[i+j]) )
-      j--;
-    }
-    ret = std::string(in+i,j);
-    *end=i+j;
-  }
-
-  i = *end;
-  while(i < in_size && !ztd::filedat::isRead(in[i]))
-  i++;
-  if( i>= in_size ) //last char
-  {
-    *end=i;
-    return ret;
-  }
-  else if(in[i] ==',') //comma as expected
-  {
-    *end=i+1;
-    return ret;
-  }
-  else //Unexpected char
-  throw ztd::format_error("Expecting comma", "", std::string(in, in_size), i);
+  return std::make_tuple(key, value, rstr, rr, valstart, keystart);
 
 }
 
-void ztd::chunkdat::set(const char* in, const int in_size, int offset, filedat* parent)
+void ztd::chunkdat::set(const std::string& in, int offset, ztd::filedat* parent)
 {
-  this->clear(); //reset everything
+  this->clear();
   this->m_parent=parent;
   this->m_offset=offset;
 
-  int i=0;
+  // isolate value
+  auto tup = _getstrval(in); // any exception here is caught upwards
+  std::string str = std::get<0>(tup);
+  std::string rest = std::get<1>(tup);
+  int i = std::get<2>(tup);
+  int j = std::get<3>(tup);
 
-  while(i<in_size && !ztd::filedat::isRead(in[i])) //skip unread char
-  i++;
-
-  if(i >= in_size) //empty: make an empty strval
+  if(str == "") //empty: make an empty strval
   {
     ztd::chunk_string* cv = new ztd::chunk_string();
     m_achunk=cv;
     cv->val = "";
     return;
   }
-  else if( in[i] == '{')
+  if ( str[0] == '{') // map
   {
-    i++;
-    int val_end=in_size-1;
-    while(!ztd::filedat::isRead(in[val_end])) //skip unread char
-    val_end--;
-    if(in[val_end] != '}')
-    throw ztd::format_error("Expecting closing brace", "", std::string(in, in_size), val_end+1);
+    auto p = _skip(rest);
+    if( p.first != "") //rest is not empty
+      throw ztd::format_error("Unexpected char", "", in, i+p.second);
 
+    str.erase(str.begin()); // remove first char '{'
+    i = j+1;
+    str.pop_back(); // remove last char '}'
+
+    // create chunk
     ztd::chunk_map* tch = new ztd::chunk_map();
     m_achunk = tch;
 
-    std::string name;
-    std::string val;
-    while(i < val_end)
+    if(_skip(str).first == "") // empty map
+      return;
+
+    do
     {
-      int start=0;
-      int _size=0;
-      int end=0;
-
-      while(!ztd::filedat::isRead(in[i]))
-      i++;
-
-      std::string newstr=std::string(in+i, val_end-i);
-      try
+      int keystart, valstart;
+      std::string key, value;
+      p = _skip(str);
+      if(p.first[0] == '=')
+        throw ztd::format_error("Value has no key", "", in, i+p.second);
+      try // get one value
       {
-        name = _getname(newstr.c_str(), newstr.size(), &start, &_size, &end);
-        val = newstr.substr(start, _size);
+        auto tup2 = _getkeyval(str);
+        key=std::get<0>(tup2);              // key
+        value=std::get<1>(tup2);            // value
+        str=std::get<2>(tup2);              // rest
+        valstart = i + std::get<4>(tup2);   // start of value
+        keystart = i + std::get<5>(tup2);   // start of key
+        i+=std::get<3>(tup2);               // add start of rest
       }
       catch(ztd::format_error& e)
       {
-        throw ztd::format_error(e.what(), "", std::string(in, in_size), e.where()+i);
+        throw ztd::format_error(e.what(), e.origin(), in, i+e.where());
       }
-
-      if( name == "" ) //no more values
-      break;
-
-      try
+      if(key != "") // good value
       {
-        ztd::chunkdat* chk = new ztd::chunkdat(val.c_str(),val.size(), offset + start+i, m_parent);
-        if(!tch->values.insert( std::make_pair(name, chk ) ).second)
+        try // insert value
         {
-          delete chk;
-          throw ztd::format_error("Key '" + name + "' already present", "", std::string(in, in_size), 0 - start );
+          ztd::chunkdat* chk = new ztd::chunkdat(value, offset + valstart, m_parent);
+          if(!tch->values.insert( std::make_pair(key, chk ) ).second) // failed to insert
+          {
+            delete chk;
+            throw ztd::format_error("Key '" + key + "' already present", "", in, keystart );
+          }
+        }
+        catch(ztd::format_error& e)
+        {
+          throw ztd::format_error(e.what(), "", in, e.where() + valstart );
         }
       }
-      catch(ztd::format_error& e)
-      {
-        throw ztd::format_error(e.what(), "", std::string(in, in_size), e.where() + start + i );
-      }
-
-      i += end;
     }
-
-    return;
-
+    while(str != "");
   }
-  else if( in[i] == '[')
+  else if ( str[0] == '[') // map
   {
-    i++;
-    int val_end=in_size-1;
-    while(!ztd::filedat::isRead(in[val_end])) //skip unread char
-    val_end--;
-    if(in[val_end] != ']')
-    throw ztd::format_error("Expecting closing bracket", "", std::string(in, in_size), val_end+1);
+    auto p = _skip(rest);
+    if( p.first != "") //rest is not empty
+      throw ztd::format_error("Unexpected char", "", in, i+p.second);
 
+    str.erase(str.begin()); // remove first char '['
+    i = j+1;
+    str.pop_back(); // remove last char ']'
+
+    // create chunk
     ztd::chunk_list* tch = new ztd::chunk_list();
     m_achunk = tch;
 
-    int end=0,start=0;
-    while( i < val_end )
+    if(_skip(str).first == "") // empty list
+      return;
+
+    do
     {
-      std::string val;
-      std::string newstr=std::string(in+i, val_end-i);
-      try
+      int valstart;
+      std::string value;
+      try // get one value
       {
-        val = _getlist(newstr.c_str(), newstr.size(), &start, &end);
+        auto tup2 = _getstrval(str, ',', ';');
+        value=std::get<0>(tup2);            // value
+        str=std::get<1>(tup2);              // rest
+        valstart = i + std::get<3>(tup2);   // start of value
+        i+=std::get<2>(tup2);               // add start of rest
       }
       catch(ztd::format_error& e)
       {
-        throw ztd::format_error(e.what(), "", std::string(in, in_size), e.where()+i);
+        throw ztd::format_error(e.what(), e.origin(), in, e.where() + i);
       }
-
       try
       {
-        tch->list.push_back(new ztd::chunkdat(val.c_str(),val.size(), offset + start+i, m_parent) );
+        tch->list.push_back(new ztd::chunkdat(value, offset + valstart, m_parent) );
       }
       catch(ztd::format_error& e)
       {
-        throw ztd::format_error(e.what(), "", std::string(in, in_size), e.where() + start + i );
+        throw ztd::format_error(e.what(), e.origin(), in, e.where() + valstart );
       }
-
-      i+=end;
     }
-
-    return;
-
+    while(str != "");
   }
-  else // string value
+  else
   {
-    int val_end=in_size;
-    val_end--;
-    while(!ztd::filedat::isRead(in[val_end])) //skip unread char
-    val_end--;
-
-    ztd::chunk_string* tch = new ztd::chunk_string();
-    m_achunk = tch;
-
-    tch->val = std::string(in+i,val_end-i+1);
-
-    return;
-
+    ztd::chunk_string* cv = new ztd::chunk_string();
+    m_achunk=cv;
+    cv->val = in;
   }
 }
 
@@ -776,6 +796,8 @@ std::string ztd::chunkdat::strval(unsigned int alignment, std::string const& ali
   else if(this->type()==ztd::chunk_abstract::map)
   {
     ztd::chunk_map* cp = dynamic_cast<chunk_map*>(m_achunk);
+    if(cp->values.size() <= 0)
+      return "{}";
     std::string ret="{\n";
     for(auto it : cp->values)
     {
@@ -783,7 +805,16 @@ std::string ztd::chunkdat::strval(unsigned int alignment, std::string const& ali
       ret += it.first;
       ret += " = ";
       if(it.second!=nullptr)
-      ret += it.second->strval(alignment+1, aligner);
+      {
+        if(it.second->type() == ztd::chunk_abstract::string)
+        {
+          ret += "\"" + escape(it.second->strval(), '"') + "\"";
+        }
+        else
+        {
+          ret += it.second->strval(alignment+1, aligner);
+        }
+      }
       ret += '\n';
     }
     ret += repeatString(aligner, alignment);
@@ -793,12 +824,23 @@ std::string ztd::chunkdat::strval(unsigned int alignment, std::string const& ali
   else if(this->type()==ztd::chunk_abstract::list)
   {
     ztd::chunk_list* lp = dynamic_cast<chunk_list*>(m_achunk);
+    if(lp->list.size() <= 0)
+      return "[]";
     std::string ret="[\n";
     for(auto it : lp->list)
     {
       ret += repeatString(aligner, alignment+1);
       if(it!=nullptr)
-      ret += it->strval(alignment+1, aligner);
+      {
+        if(it->type() == ztd::chunk_abstract::string)
+        {
+          ret += '"' + escape(it->strval(), '"') + '"';
+        }
+        else
+        {
+          ret += it->strval(alignment+1, aligner);
+        }
+      }
       ret += ",\n";
     }
     ret.erase(ret.end()-2);
@@ -909,21 +951,23 @@ ztd::chunkdat& ztd::chunkdat::subChunkRef(const unsigned int a) const
 ztd::chunkdat::chunkdat()
 {
   m_achunk=nullptr;
+  m_parent=nullptr;
+  m_offset=0;
 }
 ztd::chunkdat::chunkdat(const char* in)
 {
   m_achunk=nullptr;
   set(in, strlen(in), 0, nullptr);
 }
-ztd::chunkdat::chunkdat(std::string const& in)
+ztd::chunkdat::chunkdat(std::string const& in, int offset, filedat* parent)
 {
   m_achunk=nullptr;
-  set(in, 0, nullptr);
+  set(in, offset, parent);
 }
-ztd::chunkdat::chunkdat(const char* in, const int in_size,  int offset, filedat* data)
+ztd::chunkdat::chunkdat(const char* in, const int in_size, int offset, filedat* parent)
 {
   m_achunk=nullptr;
-  set(in, in_size, offset, data);
+  set(in, in_size, offset, parent);
 }
 ztd::chunkdat::chunkdat(chunkdat const& in)
 {

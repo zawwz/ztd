@@ -5,37 +5,42 @@ ZFD is composed of infinitely concatenable "chunks". There a three types of chun
 - List chunk    : between brackets  []  
 - String value
 
-Formatting is ignored, all spaces will be ignored unless they are part of a value.  
-Comments can be written with //, ends at end of line
+All spaces will be ignored unless they are part of a value.  
+Comments can be written with // or #, ends at end of line.  
+Only supports ASCII
 
-ZFD treats everything as a string, there is no number or boolean types
+Everything is a string, there are no number or boolean types
 
 ### Map Chunk
 
-A map chunk consists of pairs of keys and values. Format is as follows:
+A map chunk consists of pairs of keys and values.  
+Key separators are \n and ;  
+Format is as follows:  
 ```
 {
-  //no concatenator: value ends at end of line. /!\ Comments on these lines will be part of the value
   key1=value
-  //concatenators: value ends at end of concatenation
   key2 = " value "
   key3 = ' value '
-  key4=[ //list ]
-  key5={ //chunk }
+  // brace and brackets have to be the first valid chars for list and maps
+  key4 = [ //list ]
+  key5 = { //map }
+  // multiple values in a single line
+  key6=foo; key7=bar
 }
 ```
 
 ### List Chunk  
 
-A list chunk consists of a linear list of values separated by commas. Format is as follows:
+A list chunk consists of a linear list of values separated by commas.  
+Value separators are , and ;  
+Format is as follows:  
 ```
 [
-  //comments cannot be written between a value and the separating comma
   value,
   " value ",
   ' value ',
   { //chunk },
-  [ //list ]
+  [ //list ],
 ]
 ```
 

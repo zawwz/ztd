@@ -105,7 +105,7 @@ namespace ztd
     //! @brief Constructor with initial value
     chunkdat(const char* in);
     //! @brief Constructor with initial value
-    chunkdat(std::string const& in);
+    chunkdat(std::string const& in, int offset=0, filedat* parent=nullptr);
     //! @brief Constructor with initial value
     chunkdat(const char* in, const int in_size,  int offset=0, filedat* parent=nullptr);
     //! @brief Constructor with copy
@@ -129,19 +129,19 @@ namespace ztd
 
     //! @brief Set data
     /*!
+    @param in String data
+    @param offset Used for debugging
+    @param data Used for debugging
+    */
+    void set(std::string const& in, int offset=0, filedat* parent=nullptr);
+    //! @brief Set data
+    /*!
     @param in C string data
     @param in_size Size of the string data
     @param offset Used for debugging
     @param parent Used for debugging
     */
-    void set(const char* in, const int in_size, int offset=0, filedat* parent=nullptr);
-    //! @brief Set data
-    /*!
-    @param in String data
-    @param offset Used for debugging
-    @param data Used for debugging
-    */
-    inline void set(std::string const& in, int offset=0, filedat* parent=nullptr) { this->set(in.c_str(), in.size(), offset, parent); }
+    inline void set(const char* in, const int in_size, int offset=0, filedat* parent=nullptr) { this->set(std::string(in, in_size), offset, parent);}
     //! @brief Copy chunk data
     void set(chunkdat const& in);
 
@@ -337,6 +337,8 @@ namespace ztd
     @param aligner String used to align subchunks
     */
     std::string strval(std::string const& aligner="\t") const;
+    //! @brief Alias for strval()
+    inline std::string str(std::string const& aligner="\t") const { return this->strval(aligner); }
 
     //! @brief Get reference to chunk data
     inline chunkdat& data() const { return *m_dataChunk; }
@@ -362,25 +364,13 @@ namespace ztd
     //! @see chunkdat::operator[](const unsigned int a) const
     inline chunkdat& operator[](const unsigned int index) const { return m_dataChunk->subChunkRef(index); }
 
-    //! @brief add data and return *this
-    //! @see chunkdat::operator+=(std::pair<std::string, chunkdat> const& a)
-    inline filedat& operator+=(std::pair<std::string, chunkdat> const& a)              { *m_dataChunk += a; return *this; }
-    //! @brief add data and return *this
-    //! @see chunkdat::operator+=(std::vector<std::pair<std::string, chunkdat>> const& a)
-    inline filedat& operator+=(std::vector<std::pair<std::string, chunkdat>> const& a) { *m_dataChunk += a; return *this; }
-    //! @brief add data and return *this
-    //! @see chunkdat::operator+=(chunkdat const& a)
-    inline filedat& operator+=(chunkdat const& a)                                      { *m_dataChunk += a; return *this; }
-    //! @brief add() and return *this
-    //! @see chunkdat::operator+=(std::vector<chunkdat> const& a)
-    inline filedat& operator+=(std::vector<chunkdat> const& a)                         { *m_dataChunk += a; return *this; }
-
     //! @brief set_data() and return *this
     //! @see chunkdat::operator+=(std::vector<chunkdat> const& a)
     inline filedat& operator=(chunkdat const& a)                                       { set_data(a); return *this; }
 
     //! @brief Is a read char
     static bool isRead(char in);
+    static std::string removeComments(std::string str);
 
     inline operator chunkdat() const { return *m_dataChunk; }
 //    inline operator std::string() const { if(m_dataChunk!=nullptr) return m_dataChunk->strval(); else return ""; }
@@ -388,6 +378,7 @@ namespace ztd
   private:
     //functions
     void generateChunk();
+
     //attributes
     std::string m_filePath;
     std::string m_data;
@@ -428,7 +419,7 @@ namespace ztd
     If origin is known, displays location and discriminating line\n
     If origin is unknown, displays whole data up to discriminating line
   */
-  void printFormatException(format_error& exc);
+  inline void printFormatException(format_error& exc) {printErrorIndex(exc.data(), exc.where(), exc.what(), exc.origin());}
 
 }
 
