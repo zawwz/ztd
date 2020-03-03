@@ -21,10 +21,10 @@ Format is as follows:
   key1=value
   key2 = " value "
   key3 = ' value '
-  // brace and brackets have to be the first valid chars for list and maps
-  key4 = [ //list ]
-  key5 = { //map }
-  // multiple values in a single line
+  # brace and brackets have to be the first valid chars for list and maps
+  key4 = [ ] // list
+  key5 = { } # map
+  # multiple values in a single line
   key6=foo; key7=bar
 }
 ```
@@ -39,8 +39,8 @@ Format is as follows:
   value,
   " value ",
   ' value ',
-  { //chunk },
-  [ //list ],
+  { }, # map
+  [ ]  # list
 ]
 ```
 
