@@ -14,7 +14,7 @@ Everything is a string, there are no number or boolean types
 ### Map Chunk
 
 A map chunk consists of pairs of keys and values.  
-Key separators are \n and ;  
+Key separators are \\n and ;  
 
 Format is as follows:  
 ```
@@ -161,5 +161,5 @@ catch (ztd::format_error& fe)
   printFormatException(fe);
 }
 ```
-If origin is known, printFormatException will print only the relevant line with location <br>
+If origin is known, printFormatException will print only the relevant line with location \n
 If origin is unknown, printFormatException will print the whole data until the discriminating line

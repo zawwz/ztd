@@ -52,27 +52,41 @@ namespace ztd
   */
   int pclose2(FILE* fp, pid_t pid);
 
+
+  //! @brief Shell call class
   class shc
   {
   public:
+    //! @brief constructor
     shc(std::string const& cmd="", bool const cout=false);
     virtual ~shc();
 
+    //! @brief Start the command
     void run();
+    //! @brief Kill the command (SIGINT)
     int kill_int();
 
+    //! @brief Wait until the command gives output
     void wait_output();
+    //! @brief Retrieve a line from the command's output
     std::string get_output();
 
+    //! @brief Wait for the command to finish
     void wait_finish();
 
+    //! @brief Command to execute
     std::string command;
+    //! @brief Output the command result to console
     bool to_console;
 
+    //! @brief Run status of the command
     bool running;
+    //! @brief PID of the command (only during execution)
     pid_t pid;
 
+    //! @brief Output lines of the command
     std::queue<std::string> output;
+    //! @brief Return value on the command (only after execution)
     int return_value;
 
     ztd::wait_pool wp_output;
