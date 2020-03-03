@@ -15,6 +15,7 @@ Everything is a string, there are no number or boolean types
 
 A map chunk consists of pairs of keys and values.  
 Key separators are \n and ;  
+
 Format is as follows:  
 ```
 {
@@ -31,8 +32,9 @@ Format is as follows:
 
 ### List Chunk  
 
-A list chunk consists of a linear list of values separated by commas.  
+A list chunk consists of a linear list of values.  
 Value separators are , and ;  
+
 Format is as follows:  
 ```
 [
@@ -113,10 +115,10 @@ chk2 *= "[ v1 , v2 ]";                // Concatenate string chunks
 
 > In case a chunk doesn't have a type, it will be automatically set to the type the operation implies
 
-It is advised to first write the data onto a chunk and then assigning the chunk to the file
-But in case you need absolute performance, you can access the filedat chunk with `filedat.data()`
-
 ### Exporting
+
+It is advised to first write the data onto a chunk and then assigning the chunk to the file,
+but in case you need absolute performance, you can access the filedat chunk with `filedat.data()`
 
 #### File export
 
@@ -159,5 +161,5 @@ catch (ztd::format_error& fe)
   printFormatException(fe);
 }
 ```
-If origin is known, printFormatException will print only the relevant line with location  
+If origin is known, printFormatException will print only the relevant line with location <br>
 If origin is unknown, printFormatException will print the whole data until the discriminating line
