@@ -188,14 +188,25 @@ namespace ztd
     inline void add(std::vector<chunkdat> const& vec) { addToList(vec); }
     //! @brief Concatenate chunks of data
     /*! Effective only if the two chunks are of the same type\n
-        Map: combines two maps into a single map\n
-        List: combines into a single list\n
+        Map: Combines into a single map. Error on colliding keys\n
+        List: Append input list to current chunk\n
         String: Concatenate strings
     */
     void concatenate(chunkdat const& chk);
 
+    //! @brief Merge chk into current chunk
+    /*! Merge is performed recursively\n
+        Map: combines into a single map. Colliding keys get merged\n
+        List: Append input list to current chunk\n
+        String: Error\n
+        @param overwrite In case of collisions or type mismatch, input overwrites current chunk
+    */
+    void merge(chunkdat const& chk, bool overwrite=false);
+
+    //! @brief Erase key from map
     void erase(const std::string& key);
 
+    //! @brief Erase index from list
     void erase(const unsigned int index);
 
 
@@ -284,6 +295,10 @@ namespace ztd
   inline chunkdat operator-(const chunkdat& a, const std::string& b)  { chunkdat ret(a); ret -= b; return ret; }
   //! @brief substract
   inline chunkdat operator-(const chunkdat& a, const unsigned int b)  { chunkdat ret(a); ret -= b; return ret; }
+
+  //! @brief Merge chunks
+  inline chunkdat merge(chunkdat a, chunkdat const& b, bool overwrite) { a.merge(b, overwrite); return a; }
+
 
   //! @brief File data object
   /*!
@@ -412,6 +427,7 @@ namespace ztd
 
   inline std::ostream& operator<<(std::ostream& stream, chunkdat const& a)  { return stream << a.strval(); }
   inline std::ostream& operator<<(std::ostream& stream, filedat const& a)   { return stream << a.strval(); }
+
 
   void printErrorIndex(const char* in, const int index, const std::string& message, const std::string& origin);
   //! @brief Print exception to console

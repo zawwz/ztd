@@ -252,7 +252,6 @@ std::pair<std::string, size_t> _skip(const std::string& str)
 }
 
 
-// TODO TODO TODO
 // value, rest, start of rest, start of value, delim found
 static std::tuple<std::string, std::string, int, int, bool> _getstrval(const std::string& str, const char delim=0, const char altdelim=0)
 {
@@ -748,6 +747,57 @@ void ztd::chunkdat::concatenate(chunkdat const& chk)
   }
 }
 
+// overwrite: chk replaces this when conflict
+void ztd::chunkdat::merge(chunkdat const& chk, bool overwrite)
+{
+  if(this->type() == ztd::chunk_abstract::none) //nothing: copy
+  {
+    this->set(chk);
+  }
+  else if(this->type()==ztd::chunk_abstract::map && chk.type()==ztd::chunk_abstract::map) //map
+  {
+    ztd::chunk_map* ci = dynamic_cast<chunk_map*>(chk.getp());
+    ztd::chunk_map* cc = dynamic_cast<chunk_map*>(m_achunk);
+    for(auto it: ci->values) // iterate keys
+    {
+      auto fi = cc->values.find(it.first);
+      if(fi == cc->values.end()) // new key
+      {
+        this->addToMap(it.first, *it.second);
+      }
+      else // key already present
+      {
+        fi->second->merge(*it.second, overwrite); // merge subchunks
+      }
+    }
+    //map merge
+  }
+  else if(this->type()==ztd::chunk_abstract::list && chk.type()==ztd::chunk_abstract::list) //list
+  {
+    ztd::chunk_list* ci = dynamic_cast<chunk_list*>(chk.getp());
+    for(auto it : ci->list)
+    {
+      this->add(*it);
+    }
+  }
+  else if(this->type()==ztd::chunk_abstract::string && chk.type()==ztd::chunk_abstract::string) //string
+  {
+    ztd::chunk_string* cc = dynamic_cast<chunk_string*>(m_achunk);
+    if(overwrite)
+      cc->val = chk.str();
+    else
+      throw ztd::format_error("Cannot merge string chunks", "", "", -1);
+  }
+  else
+  {
+    if(overwrite)
+      this->set(chk);
+    else
+      throw ztd::format_error("Cannot merge chunks of different types", "", "", -1);
+  }
+}
+
+
 void ztd::chunkdat::erase(const std::string& key)
 {
   if(this->type()==ztd::chunk_abstract::map)
@@ -867,7 +917,7 @@ ztd::chunkdat* ztd::chunkdat::subChunkPtr(std::string const& in) const
     ztd::chunk_map* dc = dynamic_cast<chunk_map*>(m_achunk);
     auto fi = dc->values.find(in);
     if(fi == dc->values.end()) //none found
-    return nullptr;
+      return nullptr;
     return fi->second;
   }
   else //not a chunk
