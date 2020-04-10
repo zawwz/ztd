@@ -1,6 +1,7 @@
 #include "shell.hpp"
 
 #include <thread>
+#include <fstream>
 
 #include <unistd.h>
 #include <stdlib.h>
@@ -9,9 +10,11 @@
 #include <errno.h>
 #include <signal.h>
 
-std::string ztd::sh(const std::string& command, bool to_console)
+//// SHELL CALLS ////
+
+std::string ztd::sh(const std::string& command)
 {
-  return ztd::shp(command, to_console).first;
+  return ztd::shp(command).first;
 }
 
 int ztd::shr(const std::string& command)
@@ -19,7 +22,7 @@ int ztd::shr(const std::string& command)
   return WEXITSTATUS(system(command.c_str()));
 }
 
-std::pair<std::string, int> ztd::shp(const std::string& command, bool to_console)
+std::pair<std::string, int> ztd::shp(const std::string& command)
 {
   std::string ret;
   FILE *stream = popen(command.c_str(), "r");
@@ -27,100 +30,42 @@ std::pair<std::string, int> ztd::shp(const std::string& command, bool to_console
   size_t buff_size = 0;
   while (getline(&buff, &buff_size, stream) > 0)
   {
-    if(to_console)
-      printf("%s", buff);
-
     ret += buff;
   }
   return std::make_pair(ret, WEXITSTATUS(pclose(stream)));
-}
-
-FILE* ztd::popen2(const char* command, const char* type, int* pid)
-{
-    const int READ=0, WRITE=1;
-    pid_t child_pid;
-    int fd[2];
-    pipe(fd);
-
-    if((child_pid = fork()) == -1)
-    {
-        perror("fork");
-        exit(1);
-    }
-
-    /* child process */
-    if (child_pid == 0)
-    {
-        if ( index(type, 'r') != NULL )
-        {
-            close(fd[READ]);    //Close the READ end of the pipe since the child's fd is write-only
-            dup2(fd[WRITE], 1); //Redirect stdout to pipe
-        }
-        else
-        {
-            close(fd[WRITE]);    //Close the WRITE end of the pipe since the child's fd is read-only
-            dup2(fd[READ], 0);   //Redirect stdin to pipe
-        }
-
-        setpgid(child_pid, child_pid); //Needed so negative PIDs can kill children of /bin/sh
-        execl("/bin/sh", "/bin/sh", "-c", command, NULL);
-        exit(0);
-    }
-    else
-    {
-        if ( index(type, 'r') != NULL )
-        {
-            close(fd[WRITE]); //Close the WRITE end of the pipe since parent's fd is read-only
-        }
-        else
-        {
-            close(fd[READ]); //Close the READ end of the pipe since parent's fd is write-only
-        }
-    }
-    if(pid != NULL)
-      *pid = child_pid;
-
-    if ( index(type, 'r') != NULL )
-    {
-        return fdopen(fd[READ], "r");
-    }
-
-    return fdopen(fd[WRITE], "w");
-}
-
-int ztd::pclose2(FILE* fp, pid_t pid)
-{
-    int stat;
-
-    fclose(fp);
-    while (waitpid(pid, &stat, 0) == -1)
-    {
-        if (errno != EINTR)
-        {
-            stat = -1;
-            break;
-        }
-    }
-
-    return stat;
+  /* shc method
+  std::string ret;
+  ztd::shc r(command);
+  r.run();
+  r.wait_finish();
+  while(r.has_output())
+    ret += r.get_output();
+  return std::make_pair(ret, r.return_value);
+  */
 }
 
 // SHC
 
-ztd::shc::shc(std::string const& cmd, bool const cout)
+ztd::shc::shc(std::string const& cmd)
 {
   this->command=cmd;
-  this->to_console=cout;
+  this->running=false;
+  this->pid=0;
 }
 ztd::shc::~shc()
 {
   if(this->running)
     this->kill_int();
+  this->thread.join();
 }
 
 void ztd::shc::run()
 {
-  std::thread(ztd::shc::run_process, this).detach();
+  ztd::wait_pool wait_for_start;
+  if(!this->running)
+    this->thread = std::thread(ztd::shc::run_process, this, &wait_for_start);
+  if(!this->running)
+    wait_for_start.wait();
 }
 
 int ztd::shc::kill_int()
@@ -133,7 +78,7 @@ int ztd::shc::kill_int()
 
 void ztd::shc::wait_output()
 {
-  while(this->output.size() <= 0)
+  while(this->running && !(this->has_output()) )
     this->wp_output.wait();
 }
 
@@ -155,31 +100,131 @@ void ztd::shc::wait_finish()
     this->wp_finish.wait();
 }
 
-void ztd::shc::run_process(shc* p)
+void ztd::shc::run_process(shc* p, ztd::wait_pool* wp)
 {
   if(p->running)
     return;
 
+  p->running = true;
+  wp->notify_all();
+
   char* buff = NULL;
   size_t buff_size = 0;
   int pid = 0;
-
+  std::vector<char*> args = { "-c", (char*) p->command.c_str() };
+  // FILE *stream = ztd::eopen("r", &pid, "/bin/sh", args);
   FILE *stream = ztd::popen2(p->command.c_str(), "r", &pid);
   p->pid = pid;
-  p->running = true;
 
   std::string ln;
-  while ( getline(&buff, &buff_size, stream) > 0 ) //retrieve device lines
+  while ( getline(&buff, &buff_size, stream) > 0 ) //retrieve lines
   {
-    if(p->to_console)
-      printf("%s", buff);
-
-    ln = std::string(buff, buff_size);
-    p->output.push(ln);
+    p->output.push(std::string(buff));
     p->wp_output.notify_all();
   }
 
-  p->running = false;
-  p->wp_finish.notify_all();
   p->return_value = WEXITSTATUS(ztd::pclose2(stream, pid));
+  p->running = false;
+  p->wp_output.notify_all();
+  p->wp_finish.notify_all();
+}
+
+//// EXEC EXTENTIONS ////
+
+// open/close calls
+
+FILE* ztd::eopen(const char* type, int* pid, const char* bin, std::vector<char*> args)
+{
+    const int READ=0, WRITE=1;
+    pid_t child_pid;
+    int fd[2];
+    pipe(fd);
+
+    args.push_back(NULL);                   // NULL terminated array for execv()
+    args.insert(args.begin(), (char*) bin); // first arg is name of the exec
+
+    // forking
+    if((child_pid = fork()) == -1)
+    {
+      perror("fork");
+      exit(1);
+    }
+    if (child_pid == 0) // child process
+    {
+        if ( index(type, 'r') != NULL )
+        {
+            close(fd[READ]);    //Close the READ end of the pipe since the child's fd is write-only
+            dup2(fd[WRITE], 1); //Redirect stdout to pipe
+        }
+        else
+        {
+            close(fd[WRITE]);    //Close the WRITE end of the pipe since the child's fd is read-only
+            dup2(fd[READ], 0);   //Redirect stdin to pipe
+        }
+        setpgid(child_pid, child_pid); //Needed so negative PIDs can kill children of /bin/sh
+        execvp(bin, args.data());
+        exit(0);
+    }
+    else // main process
+    {
+        if ( index(type, 'r') != NULL )
+        {
+            close(fd[WRITE]); //Close the WRITE end of the pipe since parent's fd is read-only
+        }
+        else
+        {
+            close(fd[READ]); //Close the READ end of the pipe since parent's fd is write-only
+        }
+    }
+    if(pid != NULL)
+      *pid = child_pid;
+
+    if ( index(type, 'r') != NULL )
+    {
+        return fdopen(fd[READ], "r");
+    }
+
+    return fdopen(fd[WRITE], "w");
+}
+
+int ztd::eclose(FILE* fd, pid_t pid)
+{
+    int stat;
+
+    fclose(fd);
+    while (waitpid(pid, &stat, 0) == -1)
+    {
+        if (errno != EINTR)
+        {
+            stat = -1;
+            break;
+        }
+    }
+
+    return stat;
+}
+
+// exec calls
+// function itself
+std::pair<std::string, int> ztd::exec(std::string const& bin, std::vector<char*> const& args)
+{
+  std::string ret;
+  pid_t pid;
+
+  FILE *stream = eopen("r", &pid, bin.c_str(), args);
+  char* buff = NULL;
+  size_t buff_size = 0;
+  while (getline(&buff, &buff_size, stream) > 0)
+  {
+    ret += buff;
+  }
+  return std::make_pair(ret, WEXITSTATUS(eclose(stream, pid)));
+}
+// translate to char* call
+std::pair<std::string, int> ztd::exec(std::string const& bin, std::vector<std::string> const& args)
+{
+  std::vector<char*> rargs;
+  for(auto it: args)
+    rargs.push_back((char*) it.c_str());
+  return ztd::exec(bin, rargs);
 }
