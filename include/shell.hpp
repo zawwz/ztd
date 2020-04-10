@@ -142,6 +142,9 @@ namespace ztd
   //! @brief @see exec(std::string const& bin, std::vector<char*> const& args)
   std::pair<std::string, int> exec(std::string const& bin, std::vector<std::string> const& args);
 
+  std::pair<std::string, int> script(std::string const& data, std::vector<std::string> const& args);
+  std::pair<std::string, int> script(std::string const& data, std::vector<char*> const& args);
+
 }
 
 #endif //SHELL_HPP

@@ -224,7 +224,36 @@ std::pair<std::string, int> ztd::exec(std::string const& bin, std::vector<char*>
 std::pair<std::string, int> ztd::exec(std::string const& bin, std::vector<std::string> const& args)
 {
   std::vector<char*> rargs;
-  for(auto it: args)
-    rargs.push_back((char*) it.c_str());
+  for(auto it=args.begin(); it!=args.end() ; it++)
+    rargs.push_back((char*) it->c_str());
   return ztd::exec(bin, rargs);
+}
+
+std::pair<std::string, int> ztd::script(std::string const& data, std::vector<std::string> const& args)
+{
+  std::vector<char*> rargs;
+  for(auto it=args.begin(); it!=args.end() ; it++)
+    rargs.push_back((char*) it->c_str());
+  return ztd::script(data, rargs);
+}
+std::pair<std::string, int> ztd::script(std::string const& data, std::vector<char*> const& args)
+{
+  // create stream
+  std::string filepath = "/tmp/ztdscript" + ztd::sh("tr -dc '[:alnum:]' < /dev/urandom | head -c10");
+  std::ofstream stream(filepath);
+  if(!stream)
+    throw std::runtime_error("Failed to write to file '"+filepath+'\'');
+
+  // output
+  stream << data;
+  stream.close();
+  ztd::sh("chmod +x "+filepath);
+
+  // execute script
+  auto ret = ztd::exec(filepath, args);
+
+  // delete file
+  if( remove(filepath.c_str()) != 0 )
+    throw std::runtime_error("Failed to delete file '"+filepath+'\'');
+  return std::make_pair(ret.first, ret.second);
 }
