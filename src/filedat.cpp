@@ -632,6 +632,7 @@ void ztd::chunkdat::set(ztd::chunkdat const& in)
     {
       tch->values.insert( std::make_pair(it.first, it.second->pcopy()) );
     }
+    m_achunk=tch;
   }
   else if(in.type()==ztd::chunk_abstract::list) //list
   {
@@ -641,6 +642,7 @@ void ztd::chunkdat::set(ztd::chunkdat const& in)
     {
       tch->list.push_back(it->pcopy());
     }
+    m_achunk=tch;
   }
   else if(in.type()==ztd::chunk_abstract::string) //string
   {
@@ -649,13 +651,6 @@ void ztd::chunkdat::set(ztd::chunkdat const& in)
     tch->val = std::string(cc->val);
     m_achunk = tch;
   }
-  else //none
-  {
-    //already cleared: do nothing
-    return;
-  }
-
-  this->set(in.strval(), in.offset(), in.parent());
 }
 
 void ztd::chunkdat::addToMap(std::string const& name, chunkdat const& val)
