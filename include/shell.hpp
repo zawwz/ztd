@@ -120,7 +120,7 @@ namespace ztd
   @return File descriptor for the stream in question
   @see <a href="http://man7.org/linux/man-pages/man3/popen.3.html">popen(), pclose()</a>
   */
-  inline FILE* popen2(const char* command, const char* type, int* pid) { std::vector<char*> tvec = {"-c",(char*) command}; return eopen(type, pid, "/bin/sh", tvec) ; }
+  inline FILE* popen2(const char* command, const char* type, int* pid) { return eopen(type, pid, "/bin/sh", {"-c", (char*) command}) ; }
   //! @brief pclose C function with added pid functionality
   /*!
   @param fd
@@ -138,12 +138,20 @@ namespace ztd
   @param bin Binary file to execute. Has PATH resolution
   @param args Arguments given to the binary
   */
-  std::pair<std::string, int> exec(std::string const& bin, std::vector<char*> const& args);
-  //! @brief @see exec(std::string const& bin, std::vector<char*> const& args)
   std::pair<std::string, int> exec(std::string const& bin, std::vector<std::string> const& args);
+  template<class... Args>
+  //! @brief Variadic call of exec()
+  std::pair<std::string, int> exec(std::string const& bin, Args... args) { std::vector<std::string> rargs = { static_cast<std::string>(args)...}; return exec(bin, rargs); }
 
+  //! @brief Execute string as a binary file
+  /*!
+  @param bin Data to execute as a file. #! in case of an interpreted script
+  @param args Arguments given to the file
+  */
   std::pair<std::string, int> script(std::string const& data, std::vector<std::string> const& args);
-  std::pair<std::string, int> script(std::string const& data, std::vector<char*> const& args);
+  //! @brief Variadic call of script()
+  template<class... Args>
+  std::pair<std::string, int> script(std::string const& data, Args... args) { std::vector<std::string> rargs = { static_cast<std::string>(args)...}; return script(data, rargs); }
 
 }
 
