@@ -73,14 +73,19 @@ std::string ztd::filedat::removeComments(std::string str)
   uint32_t i=0;
   while(i < str.size())
   {
-    if( str[i] == '"') // double quotes
+    if( str[i] == '\\')
+    {
+      //skip checking char
+      i++;
+    }
+    else if( str[i] == '"') // double quotes
     {
       uint32_t j=i;
       i++;
       while(i < str.size() && str[i]!='"') // until end of quote
       {
         if(i+1 < str.size() && str[i] == '\\' && str[i+1] == '"') //escaped quote
-        i++; //ignore backslash
+          i++; //ignore backslash
 
         i++; // add char and increment
       }
@@ -275,12 +280,12 @@ static std::tuple<std::string, std::string, int, int, bool> _getstrval(const std
       while(i < str.size() && str[i]!='"') // until end of quote
       {
         if(i+1 < str.size() && str[i] == '\\' && str[i+1] == '"') //escaped quote
-        i++; //ignore backslash
+          i++; //ignore backslash
 
         val.push_back(str[i++]); // add char and increment
       }
       if(i >= str.size()) // quote didn't end
-      throw ztd::format_error("Double quote doesn't close", "", str, j);
+        throw ztd::format_error("Double quote doesn't close", "", str, j);
       i++;
     }
     else if( str[i] == '\'') // single quotes
@@ -290,12 +295,12 @@ static std::tuple<std::string, std::string, int, int, bool> _getstrval(const std
       while(i < str.size() && str[i]!='\'') // until end of quote
       {
         if(i+1 < str.size() && str[i] == '\\' && str[i+1] == '\'') //escaped quote
-        i++; //ignore backslash
+          i++; //ignore backslash
 
         val += str[i++]; // add char
       }
       if(i >= str.size()) // quote didn't end
-      throw ztd::format_error("Single quote doesn't close", "", str, j);
+        throw ztd::format_error("Single quote doesn't close", "", str, j);
       i++;
     }
     if(str[i] == '{') // {} map
@@ -830,6 +835,31 @@ void ztd::chunkdat::erase(const unsigned int index)
   }
 }
 
+std::vector<ztd::chunkdat*> ztd::chunkdat::getlist()
+{
+  if(this->type()!=ztd::chunk_abstract::list)
+  {
+    if(m_parent != nullptr)
+      throw ztd::format_error("chunkdat isn't a list", m_parent->filePath(), m_parent->im_data(), m_offset );
+    else
+      throw ztd::format_error("chunkdat isn't a list", "", this->strval(), -1);
+  }
+  ztd::chunk_list* cl = dynamic_cast<chunk_list*>(m_achunk);
+  return cl->list;
+}
+std::map<std::string, ztd::chunkdat*> ztd::chunkdat::getmap()
+{
+  if(this->type()!=ztd::chunk_abstract::map)
+  {
+    if(m_parent != nullptr)
+      throw ztd::format_error("chunkdat isn't a map", m_parent->filePath(), m_parent->im_data(), m_offset );
+    else
+      throw ztd::format_error("chunkdat isn't a map", "", this->strval(), -1);
+  }
+  ztd::chunk_map* dc = dynamic_cast<chunk_map*>(m_achunk);
+  return dc->values;
+}
+
 std::string ztd::chunkdat::strval(unsigned int alignment, std::string const& aligner) const
 {
   if(this->type()==ztd::chunk_abstract::string)
@@ -941,26 +971,18 @@ ztd::chunkdat& ztd::chunkdat::subChunkRef(std::string const& in) const
   if(this->type()!=ztd::chunk_abstract::map)
   {
     if(m_parent != nullptr)
-    {
       throw ztd::format_error("chunkdat isn't a map", m_parent->filePath(), m_parent->im_data(), m_offset );
-    }
     else
-    {
       throw ztd::format_error("chunkdat isn't a map", "", this->strval(), -1);
-    }
   }
   ztd::chunk_map* dc = dynamic_cast<chunk_map*>(m_achunk);
   auto fi = dc->values.find(in);
   if(fi == dc->values.end())
   {
     if(m_parent != nullptr)
-    {
       throw ztd::format_error("Map doesn't have '" + in + "' flag", m_parent->filePath(), m_parent->im_data(), m_offset );
-    }
     else
-    {
       throw ztd::format_error("Map doesn't have '" + in + "' flag", "", this->strval(), -1);
-    }
   }
   return *fi->second;
 }
@@ -970,25 +992,17 @@ ztd::chunkdat& ztd::chunkdat::subChunkRef(const unsigned int a) const
   if(this->type()!=ztd::chunk_abstract::list)
   {
     if(m_parent != nullptr)
-    {
       throw ztd::format_error("chunkdat isn't a list", m_parent->filePath(), m_parent->im_data(), m_offset );
-    }
     else
-    {
       throw ztd::format_error("chunkdat isn't a list", "", this->strval(), -1);
-    }
   }
   ztd::chunk_list* cl = dynamic_cast<chunk_list*>(m_achunk);
   if(a >= cl->list.size())
   {
     if(m_parent != nullptr)
-    {
       throw ztd::format_error("List size is below " + std::to_string(a), m_parent->filePath(), m_parent->im_data(), m_offset );
-    }
     else
-    {
       throw ztd::format_error("List size is below " + std::to_string(a), "", this->strval(), -1);
-    }
   }
   return *cl->list[a];
 }

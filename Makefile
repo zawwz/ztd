@@ -6,7 +6,7 @@ ODIR_SHARED=obj_so
 NAME = libztd
 
 CC=g++
-CXXFLAGS= -I$(IDIR) -Wall -pedantic -std=c++17 -O2
+CXXFLAGS= -I$(IDIR) -Wall -std=c++17 -O2
 
 $(shell mkdir -p $(ODIR))
 $(shell mkdir -p $(ODIR_SHARED))
@@ -41,9 +41,9 @@ static: $(OBJ)
 shared: $(OBJ_SHARED)
 	$(CC) -shared -o libztd.so $^
 
-install: all
+install:
 	mkdir -p $(INSTALL)/usr/lib
-	mv libztd.a libztd.so $(INSTALL)/usr/lib
+	cp libztd.a libztd.so $(INSTALL)/usr/lib
 	mkdir -p $(INSTALL)/usr/include/ztd
 	cp -r include/* $(INSTALL)/usr/include/ztd
 

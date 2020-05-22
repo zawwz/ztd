@@ -209,6 +209,8 @@ namespace ztd
     //! @brief Erase index from list
     void erase(const unsigned int index);
 
+    std::vector<ztd::chunkdat*> getlist();
+    std::map<std::string, ztd::chunkdat*> getmap();
 
     //! @brief Create a copy of the chunk
     inline chunkdat copy() const { return chunkdat(*this); }

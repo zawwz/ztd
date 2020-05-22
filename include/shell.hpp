@@ -131,7 +131,7 @@ namespace ztd
   inline int pclose2(FILE* fd, pid_t pid) { return eclose(fd, pid); }
 
 
-  /// exec extensions
+  // exec extensions
 
   //! @brief Execute a binary and retrieve its outputs
   /*!
@@ -139,8 +139,9 @@ namespace ztd
   @param args Arguments given to the binary
   */
   std::pair<std::string, int> exec(std::string const& bin, std::vector<std::string> const& args);
-  template<class... Args>
+
   //! @brief Variadic call of exec()
+  template<class... Args>
   std::pair<std::string, int> exec(std::string const& bin, Args... args) { std::vector<std::string> rargs = { static_cast<std::string>(args)...}; return exec(bin, rargs); }
 
   //! @brief Execute string as a binary file
@@ -149,6 +150,7 @@ namespace ztd
   @param args Arguments given to the file
   */
   std::pair<std::string, int> script(std::string const& data, std::vector<std::string> const& args);
+  
   //! @brief Variadic call of script()
   template<class... Args>
   std::pair<std::string, int> script(std::string const& data, Args... args) { std::vector<std::string> rargs = { static_cast<std::string>(args)...}; return script(data, rargs); }
