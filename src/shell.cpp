@@ -1,4 +1,4 @@
-#include "shell.hpp"
+include "shell.hpp"
 
 #include <thread>
 #include <fstream>
@@ -184,19 +184,19 @@ FILE* ztd::eopen(const char* type, int* pid, const char* bin, std::vector<char*>
 
 int ztd::eclose(FILE* fd, pid_t pid)
 {
-    int stat;
+  int stat;
 
-    fclose(fd);
-    while (waitpid(pid, &stat, 0) == -1)
+  fclose(fd);
+  while (waitpid(pid, &stat, 0) == -1)
+  {
+    if (errno != EINTR)
     {
-        if (errno != EINTR)
-        {
-            stat = -1;
-            break;
-        }
+      stat = -1;
+      break;
     }
+  }
 
-    return stat;
+  return stat;
 }
 
 // exec calls
@@ -220,8 +220,10 @@ std::pair<std::string, int> ztd::exec(std::string const& bin, std::vector<std::s
 }
 std::pair<std::string, int> ztd::script(std::string const& data, std::vector<std::string> const& args)
 {
+  // generate path
+  const std::string tmpdir = (getenv("TMPDIR") != NULL) ? getenv("TMPDIR") : "/tmp" ;
+  const std::string filepath = tmpdir + "/ztdscript_" + ztd::sh("tr -dc '[:alnum:]' < /dev/urandom | head -c10");
   // create stream
-  std::string filepath = "/tmp/ztdscript" + ztd::sh("tr -dc '[:alnum:]' < /dev/urandom | head -c10");
   std::ofstream stream(filepath);
   if(!stream)
     throw std::runtime_error("Failed to write to file '"+filepath+'\'');
