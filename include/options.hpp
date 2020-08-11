@@ -115,6 +115,9 @@ namespace ztd
     /*CREATION FUNCTIONS*/
     //! @brief Add option to the set
     inline void add(option opt) { option_vec.push_back(opt); }
+    //! @brief Variadic call of add()
+    template<class... Args>
+    void add(Args... args) { std::vector<option> rargs = { static_cast<option>(args)...}; for(auto it: rargs) add(it); }
 
     /*PRINT FUNCTIONS*/
     //! @brief Print help for the full option set
