@@ -21,20 +21,26 @@ const char* ztd::color::color_name_index[COLOR_COUNT] = {
   "b_blue",
   "b_magenta",
   "b_cyan"
+  //format
+  "bold",
+  "italic",
+  "underline",
+  "blink",
+  "strike"
 };
 
 const char* ztd::color::color_index[COLOR_COUNT] = {
   COLOR_RESET, //none
-  "\033[0;37m", //white
-  "\033[0;02m", //gray
-  "\033[0;30m", //black
-  "\033[0;31m", //red
-  "\033[0;32m", //green
-  "\033[0;33m", //orange
-  "\033[0;34m", //blue
-  "\033[0;35m", //magenta
-  "\033[0;36m", //cyan
-  // BOLD
+  "\033[37m", //white
+  "\033[90m", //gray
+  "\033[30m", //black
+  "\033[31m", //red
+  "\033[32m", //green
+  "\033[33m", //orange
+  "\033[34m", //blue
+  "\033[35m", //magenta
+  "\033[36m", //cyan
+  // bold
   "\033[1;37m", //bold white
   "\033[1;02m", //bold light gray
   "\033[1;30m", //bold gray
@@ -43,7 +49,13 @@ const char* ztd::color::color_index[COLOR_COUNT] = {
   "\033[1;33m", //bold yellow
   "\033[1;34m", //bold blue
   "\033[1;35m", //bold magenta
-  "\033[1;36m" //bold cyan
+  "\033[1;36m", //bold cyan
+  // format
+  BOLD,
+  ITALIC,
+  UNDERLINE,
+  BLINK,
+  STRIKE
 };
 
 const char* ztd::color::getColorCode(const unsigned int index)

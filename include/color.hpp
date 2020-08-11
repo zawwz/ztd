@@ -3,21 +3,16 @@
 
 #include <iostream>
 
-#define BOLD            "\033[0;02m"
-#define ITALIC          "\033[0;03m"
-#define UNDERLINE       "\033[0;04m"
-#define BLINK           "\033[0;05m"
-#define STRIKE          "\033[0;09m"
-
-#define BOLD_ITALIC     "\033[1;03m"
-#define BOLD_UNDERLINE  "\033[1;04m"
-#define BOLD_BLINK      "\033[1;05m"
-#define BOLD_STRIKE     "\033[1;09m"
+#define BOLD            "\033[01m"
+#define ITALIC          "\033[03m"
+#define UNDERLINE       "\033[04m"
+#define BLINK           "\033[05m"
+#define STRIKE          "\033[09m"
 
 #define COLOR_RESET     "\033[0;0m"
 
 //! Number of predefined colors
-#define COLOR_COUNT 19
+#define COLOR_COUNT 24
 
 /*! @file color.hpp
 *  @brief Color management
@@ -57,7 +52,13 @@ namespace ztd
       b_yellow=15,
       b_blue=16,
       b_magenta=17,
-      b_cyan=18
+      b_cyan=18,
+      //format
+      bold=19,
+      italic=20,
+      underline=21,
+      blink=22,
+      strike=23
     };
 
     //! String color names
