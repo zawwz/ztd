@@ -31,17 +31,9 @@ std::pair<std::string, int> ztd::shp(const std::string& command)
   while (getline(&buff, &buff_size, stream) > 0)
   {
     ret += buff;
+    free(buff);
   }
   return std::make_pair(ret, WEXITSTATUS(pclose(stream)));
-  /* shc method
-  std::string ret;
-  ztd::shc r(command);
-  r.run();
-  r.wait_finish();
-  while(r.has_output())
-    ret += r.get_output();
-  return std::make_pair(ret, r.return_value);
-  */
 }
 
 // SHC
@@ -119,6 +111,7 @@ void ztd::shc::run_process(shc* p, ztd::wait_pool* wp)
   {
     p->output.push(std::string(buff));
     p->wp_output.notify_all();
+    free(buff);
   }
 
   p->return_value = WEXITSTATUS(ztd::pclose2(stream, pid));
@@ -162,7 +155,7 @@ FILE* ztd::eopen(const char* type, int* pid, const char* bin, std::vector<char*>
     }
     setpgid(child_pid, child_pid); //Needed so negative PIDs can kill children of /bin/sh
     execvp(bin, args.data());
-    exit(0);
+    exit(1);
   }
   else // main process
   {
@@ -199,6 +192,8 @@ int ztd::eclose(FILE* fd, pid_t pid)
   return stat;
 }
 
+// STANDALONE EXEC
+
 // exec calls
 // function itself
 std::pair<std::string, int> ztd::exec(std::string const& bin, std::vector<std::string> const& args)
@@ -215,6 +210,7 @@ std::pair<std::string, int> ztd::exec(std::string const& bin, std::vector<std::s
   while (getline(&buff, &buff_size, stream) > 0)
   {
     ret += buff;
+    free(buff);
   }
   return std::make_pair(ret, WEXITSTATUS(eclose(stream, pid)));
 }
