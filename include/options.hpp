@@ -1,5 +1,5 @@
-#ifndef OPTIONS_H
-#define OPTIONS_H
+#ifndef ZTD_OPTIONS_HPP
+#define ZTD_OPTIONS_HPP
 
 //DUPLICATES NOT HANDLED: takes last one
 //NO ORDER: no way to know options order
@@ -177,4 +177,4 @@ namespace ztd
 
 } //ztd
 
-#endif //OPTIONS_H
+#endif //ZTD_OPTIONS_HPP

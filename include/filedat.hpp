@@ -1,5 +1,5 @@
-#ifndef FILEDAT_HPP
-#define FILEDAT_HPP
+#ifndef ZTD_FILEDAT_HPP
+#define ZTD_FILEDAT_HPP
 
 #include <string>
 #include <vector>
@@ -442,4 +442,4 @@ namespace ztd
 }
 
 
-#endif //FILEDAT_HPP
+#endif //ZTD_FILEDAT_HPP

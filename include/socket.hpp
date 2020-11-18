@@ -1,5 +1,5 @@
-#ifndef SOCKET_H
-#define SOCKET_H
+#ifndef ZTD_SOCKET_HPP
+#define ZTD_SOCKET_HPP
 
 #include <string>
 #include <thread>
@@ -221,4 +221,4 @@ namespace ztd
 }
 
 
-#endif //SOCKET_H
+#endif //ZTD_SOCKET_HPP

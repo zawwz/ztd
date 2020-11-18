@@ -1,5 +1,5 @@
-#ifndef COLOR_HPP
-#define COLOR_HPP
+#ifndef ZTD_COLOR_HPP
+#define ZTD_COLOR_HPP
 
 #include <iostream>
 
@@ -122,4 +122,4 @@ namespace ztd
   inline std::ostream& operator<<(std::ostream& st, const ztd::color::color_name& c) { return st << ztd::color::color_index[c]; }
 }
 
-#endif //COLOR_HPP
+#endif //ZTD_COLOR_HPP

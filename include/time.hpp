@@ -1,5 +1,5 @@
-#ifndef TIME_HPP
-#define TIME_HPP
+#ifndef ZTD_TIME_HPP
+#define ZTD_TIME_HPP
 
 #include <sys/time.h>
 
@@ -50,4 +50,4 @@ namespace ztd
 }
 
 
-#endif //TIME_HPP
+#endif //ZTD_TIME_HPP

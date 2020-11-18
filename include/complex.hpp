@@ -1,5 +1,5 @@
-#ifndef COMPLEX_HPP
-#define COMPLEX_HPP
+#ifndef ZTD_COMPLEX_HPP
+#define ZTD_COMPLEX_HPP
 
 #include <iostream>
 
@@ -59,4 +59,4 @@ namespace ztd
 
 }
 
-#endif //COMPLEX_HPP
+#endif //ZTD_COMPLEX_HPP

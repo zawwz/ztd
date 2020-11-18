@@ -1,5 +1,5 @@
-#ifndef WAIT_HPP
-#define WAIT_HPP
+#ifndef ZTD_WAIT_HPP
+#define ZTD_WAIT_HPP
 
 #include <mutex>              // std::mutex, std::unique_lock
 #include <condition_variable> // std::condition_variable
@@ -30,4 +30,4 @@ namespace ztd
   };
 }
 
-#endif //WAIT_HPP
+#endif //ZTD_WAIT_HPP
