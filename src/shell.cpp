@@ -31,8 +31,8 @@ std::pair<std::string, int> ztd::shp(const std::string& command)
   while (getline(&buff, &buff_size, stream) > 0)
   {
     ret += buff;
-    free(buff);
   }
+  free(buff);
   return std::make_pair(ret, WEXITSTATUS(pclose(stream)));
 }
 
@@ -111,8 +111,8 @@ void ztd::shc::run_process(shc* p, ztd::wait_pool* wp)
   {
     p->output.push(std::string(buff));
     p->wp_output.notify_all();
-    free(buff);
   }
+  free(buff);
 
   p->return_value = WEXITSTATUS(ztd::pclose2(stream, pid));
   p->running = false;
@@ -210,8 +210,8 @@ std::pair<std::string, int> ztd::exec(std::string const& bin, std::vector<std::s
   while (getline(&buff, &buff_size, stream) > 0)
   {
     ret += buff;
-    free(buff);
   }
+  free(buff);
   return std::make_pair(ret, WEXITSTATUS(eclose(stream, pid)));
 }
 std::pair<std::string, int> ztd::script(std::string const& data, std::vector<std::string> const& args)
