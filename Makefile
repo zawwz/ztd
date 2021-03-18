@@ -6,7 +6,7 @@ ODIR_SHARED=obj_so
 NAME = libztd
 
 CC=g++
-CXXFLAGS= -I$(IDIR) -Wall -std=c++17 -O2
+CXXFLAGS= -I$(IDIR) -Wall -std=c++20 -O2
 
 $(shell mkdir -p $(ODIR))
 $(shell mkdir -p $(ODIR_SHARED))

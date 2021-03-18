@@ -99,7 +99,6 @@ namespace ztd
     inline operator std::string() const { return argument; }
 
   };
-
   //! @brief Set of POSIX/GNU style options
   /*!
     Process arguments through it to extract options
@@ -139,7 +138,29 @@ namespace ztd
     option* find(const std::string& str);
     inline option* find(const char* str) { return this->find(std::string(str)); }
 
-    /*PROCESSING FUNCTIONS*/
+    /*PROCESSING*/
+    //! @brief behavior for option processing
+    struct process_arguments {
+      bool ignore_numbers=false;
+      bool stop_on_argument=false;
+      bool ignore_unknown=false;
+      bool stop_on_doubledash=true;
+      bool output_doubledash=false;
+    };
+    //! @brief Process arguments through the option set
+    /*!
+    If errors are encountered, exceptions option_error are thrown
+    @see struct option_process_arguments
+    @param arguments vector of string containing arguments and options
+    @param behavior behavioral changes for option processing
+    @return if @a stop_on_argument unprocessed arguments\n else leftover arguments that are not options\n
+    */
+    std::vector<std::string> process(std::vector<std::string> arguments, struct process_arguments behavior);
+    //! @brief Process arguments through the option set
+    /*!
+    @see process(std::vector<std::string> arguments, struct option_process_arguments behavior)
+    */
+    inline std::vector<std::string> process(int argc, char** argv, struct process_arguments behavior) { return this->process(ztd::argVector(argc, argv), behavior); }
     //! @brief Process arguments through the option set
     /*!
       If errors are encountered, exceptions option_error are thrown

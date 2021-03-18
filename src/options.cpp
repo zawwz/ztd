@@ -162,6 +162,10 @@ ztd::option* ztd::option_set::find(const std::string& str)
 
 std::vector<std::string> ztd::option_set::process(std::vector<std::string> arguments, bool ignore_numbers, bool stop_on_argument, bool ignore_unknown)
 {
+  return this->process(arguments, {.ignore_numbers=ignore_numbers, .stop_on_argument=stop_on_argument, .ignore_unknown=ignore_unknown});
+}
+std::vector<std::string> ztd::option_set::process(std::vector<std::string> arguments, struct ztd::option_set::process_arguments behavior)
+{
   std::vector<std::string> out;
   unsigned int i=0;
   option_sequence.clear();
@@ -177,7 +181,7 @@ std::vector<std::string> ztd::option_set::process(std::vector<std::string> argum
         ztd::option* popt = this->find( it->substr(2,eqn-2) );
         if(popt == nullptr) // unknown -- opt
         {
-          if(!ignore_unknown)
+          if(!behavior.ignore_unknown)
             throw ztd::option_error(ztd::option_error::unknown_option, "--" + it->substr(2,eqn-2));
           // add to ret if ignore
           out.push_back(*it);
@@ -202,7 +206,7 @@ std::vector<std::string> ztd::option_set::process(std::vector<std::string> argum
         ztd::option* popt = this->find( it->substr(2,eqn-2) ); // get option
         if(popt == nullptr) // unknown -- opt
         {
-          if(!ignore_unknown)
+          if(!behavior.ignore_unknown)
             throw ztd::option_error(ztd::option_error::unknown_option, "--" +it->substr(2,eqn-2));
           // add to ret if ignore
           out.push_back(*it);
@@ -222,11 +226,11 @@ std::vector<std::string> ztd::option_set::process(std::vector<std::string> argum
     else if(it->size()>1 && (*it)[0] == '-' && (*it)[1] != '-')
     {
       i=1;
-      if( ignore_numbers && (*it)[i] >= '0' && (*it)[i] <= '9') // ignore numbers : add as ret arg
+      if( behavior.ignore_numbers && (*it)[i] >= '0' && (*it)[i] <= '9') // ignore numbers : add as ret arg
       {
         while(it!=arguments.end() && it->size()>i)
           i++;
-        if(stop_on_argument)
+        if(behavior.stop_on_argument)
           return std::vector<std::string>(it, arguments.end());
         out.push_back(*it);
       }
@@ -240,7 +244,7 @@ std::vector<std::string> ztd::option_set::process(std::vector<std::string> argum
           popt=this->find((*it)[i]);
           if(popt==nullptr) // unknown opt
           {
-            if(!ignore_unknown)
+            if(!behavior.ignore_unknown)
               throw ztd::option_error(ztd::option_error::unknown_option, std::string("-") + (*it)[i] );
           // add to ret if ignore
           ropt += (*it)[i];
@@ -283,11 +287,12 @@ std::vector<std::string> ztd::option_set::process(std::vector<std::string> argum
     } // if opt
     else
     {
-      if(stop_on_argument)
+      if(behavior.stop_on_argument)
         return std::vector<std::string>(it, arguments.end());
-      if( *it == "--" ) // empty -- : stop here
+      if( behavior.stop_on_doubledash && *it == "--" ) // empty -- : stop here
       {
-        out.insert(out.end(), ++it, arguments.end());
+        if(behavior.output_doubledash)
+          out.insert(out.end(), ++it, arguments.end());
         return out;
       }
       out.push_back(*it);
