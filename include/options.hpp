@@ -141,10 +141,15 @@ namespace ztd
     /*PROCESSING*/
     //! @brief behavior for option processing
     struct process_arguments {
+      //! @brief -N to be considered as numbers instead of options
       bool ignore_numbers=false;
+      //! @brief Stop processing on the first non-option argument
       bool stop_on_argument=false;
+      //! @brief Ignore unknown options (unknown options are in return arguments)
       bool ignore_unknown=false;
+      //! @brief Stop option processing on --
       bool stop_on_doubledash=true;
+      //! @brief Include -- in return arguments if it was encountered
       bool output_doubledash=false;
     };
     //! @brief Process arguments through the option set
@@ -153,7 +158,7 @@ namespace ztd
     @see struct option_process_arguments
     @param arguments vector of string containing arguments and options
     @param behavior behavioral changes for option processing
-    @return if @a stop_on_argument unprocessed arguments\n else leftover arguments that are not options\n
+    @return if @a behavior.stop_on_argument is specified, returns unprocessed arguments\n otherwise, returns leftover arguments that are not options\n
     */
     std::vector<std::string> process(std::vector<std::string> arguments, struct process_arguments behavior);
     //! @brief Process arguments through the option set
@@ -163,6 +168,8 @@ namespace ztd
     inline std::vector<std::string> process(int argc, char** argv, struct process_arguments behavior) { return this->process(ztd::argVector(argc, argv), behavior); }
     //! @brief Process arguments through the option set
     /*!
+      For backwards compatibility, use process(std::vector<std::string> arguments, struct option_process_arguments behavior) instead
+
       If errors are encountered, exceptions option_error are thrown
       @param arguments vector of string containing arguments and options
       @param ignore_numbers negative numbers are not considered as options
