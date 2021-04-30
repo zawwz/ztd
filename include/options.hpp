@@ -20,6 +20,21 @@
 
 namespace ztd
 {
+  /*PROCESSING*/
+  //! @brief behavior for option processing
+  struct process_arguments {
+    //! @brief -N to be considered as numbers instead of options
+    bool ignore_numbers=false;
+    //! @brief Stop processing on the first non-option argument
+    bool stop_on_argument=false;
+    //! @brief Ignore unknown options (added to return arguments)
+    bool ignore_unknown=false;
+    //! @brief Stop option processing on \-\-
+    bool stop_on_doubledash=true;
+    //! @brief Include \-\- in return arguments if it was encountered
+    bool output_doubledash=false;
+  };
+
   //! @brief Option exception
   /*!
     Thrown when errors are encountered during processing of options
@@ -147,20 +162,8 @@ namespace ztd
     option* find(const std::string& str);
     inline option* find(const char* str) { return this->find(std::string(str)); }
 
-    /*PROCESSING*/
-    //! @brief behavior for option processing
-    struct process_arguments {
-      //! @brief -N to be considered as numbers instead of options
-      bool ignore_numbers=false;
-      //! @brief Stop processing on the first non-option argument
-      bool stop_on_argument=false;
-      //! @brief Ignore unknown options (added to return arguments)
-      bool ignore_unknown=false;
-      //! @brief Stop option processing on \-\-
-      bool stop_on_doubledash=true;
-      //! @brief Include \-\- in return arguments if it was encountered
-      bool output_doubledash=false;
-    };
+    static constexpr struct process_arguments default_process_args={};
+
     //! @brief Process arguments through the option set
     /*!
     If errors are encountered, exceptions option_error are thrown
@@ -169,12 +172,12 @@ namespace ztd
     @param behavior behavioral changes for option processing. Optional
     @return if @a behavior.stop_on_argument is specified, returns unprocessed arguments\n otherwise, returns leftover arguments that are not options\n
     */
-    std::vector<std::string> process(std::vector<std::string> const& arguments, struct process_arguments const& behavior);
+    std::vector<std::string> process(std::vector<std::string> const& arguments, struct process_arguments const& behavior=default_process_args);
     //! @brief Process arguments through the option set
     /*!
     @see process(std::vector<std::string> const& arguments, struct process_arguments const& behavior)
     */
-    inline std::vector<std::string> process(int argc, char** argv, struct process_arguments const& behavior) { return this->process(ztd::argVector(argc, argv), behavior); }
+    inline std::vector<std::string> process(int argc, char** argv, struct process_arguments const& behavior=default_process_args) { return this->process(ztd::argVector(argc, argv), behavior); }
 
     //! @brief Get option with char name
     /*! @see option* find(char c)

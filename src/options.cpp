@@ -160,7 +160,7 @@ ztd::option* ztd::option_set::find(const std::string& str)
   return nullptr;
 }
 
-std::vector<std::string> ztd::option_set::process(std::vector<std::string> const& arguments, struct ztd::option_set::process_arguments const& behavior)
+std::vector<std::string> ztd::option_set::process(std::vector<std::string> const& arguments, struct ztd::process_arguments const& behavior)
 {
   std::vector<std::string> out;
   unsigned int i=0;
