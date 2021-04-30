@@ -28,6 +28,12 @@ namespace ztd
   {
   public:
     //! @brief option error types
+    /*!
+      Values:
+        - unkown_option
+        - takes_no_arg
+        - missing_arg
+    */
     enum error_type { unknown_option, takes_no_arg, missing_arg};
 
     //! @brief Conctructor
@@ -45,6 +51,9 @@ namespace ztd
     std::string msg;
   };
   //! @brief Convert argc/argv into vector<std::string>
+  /*!
+  Does not include argv[0]
+  */
   std::vector<std::string> argVector(int argc, char** argv);
 
   //! @brief Single option object
@@ -104,8 +113,8 @@ namespace ztd
     Process arguments through it to extract options
 
     After processing:
-    - for global option settings use find() or parse option_vec
-    - for sequential option settings parse option_sequence
+    - for global option settings use find(), [], or parse through option_vec
+    - for sequential option settings parse through option_sequence
 
   */
   class option_set
@@ -145,44 +154,27 @@ namespace ztd
       bool ignore_numbers=false;
       //! @brief Stop processing on the first non-option argument
       bool stop_on_argument=false;
-      //! @brief Ignore unknown options (unknown options are in return arguments)
+      //! @brief Ignore unknown options (added to return arguments)
       bool ignore_unknown=false;
-      //! @brief Stop option processing on --
+      //! @brief Stop option processing on \-\-
       bool stop_on_doubledash=true;
-      //! @brief Include -- in return arguments if it was encountered
+      //! @brief Include \-\- in return arguments if it was encountered
       bool output_doubledash=false;
     };
     //! @brief Process arguments through the option set
     /*!
     If errors are encountered, exceptions option_error are thrown
-    @see struct option_process_arguments
+    @see struct process_arguments
     @param arguments vector of string containing arguments and options
-    @param behavior behavioral changes for option processing
+    @param behavior behavioral changes for option processing. Optional
     @return if @a behavior.stop_on_argument is specified, returns unprocessed arguments\n otherwise, returns leftover arguments that are not options\n
     */
-    std::vector<std::string> process(std::vector<std::string> arguments, struct process_arguments behavior);
+    std::vector<std::string> process(std::vector<std::string> const& arguments, struct process_arguments const& behavior);
     //! @brief Process arguments through the option set
     /*!
-    @see process(std::vector<std::string> arguments, struct option_process_arguments behavior)
+    @see process(std::vector<std::string> const& arguments, struct process_arguments const& behavior)
     */
-    inline std::vector<std::string> process(int argc, char** argv, struct process_arguments behavior) { return this->process(ztd::argVector(argc, argv), behavior); }
-    //! @brief Process arguments through the option set
-    /*!
-      For backwards compatibility, use process(std::vector<std::string> arguments, struct option_process_arguments behavior) instead
-
-      If errors are encountered, exceptions option_error are thrown
-      @param arguments vector of string containing arguments and options
-      @param ignore_numbers negative numbers are not considered as options
-      @param stop_on_argument stop processing when encountering a non-option argument
-      @param ignore_unknown don't throw exceptions on unknown options, instead append to return arguments
-      @return if @a stop_on_argument unprocessed arguments\n else leftover arguments that are not options\n
-    */
-    std::vector<std::string> process(std::vector<std::string> arguments, bool ignore_numbers=false, bool stop_on_argument=false, bool ignore_unknown=false);
-    //! @brief Process arguments through the option set
-    /*!
-      @see process(std::vector<std::string> arguments, bool ignore_numbers, bool stop_on_argument, bool ignore_unknown)
-    */
-    inline std::vector<std::string> process(int argc, char** argv, bool ignore_numbers=false, bool stop_on_argument=false, bool ignore_unknown=false) { return this->process(ztd::argVector(argc, argv), ignore_numbers, stop_on_argument, ignore_unknown); }
+    inline std::vector<std::string> process(int argc, char** argv, struct process_arguments const& behavior) { return this->process(ztd::argVector(argc, argv), behavior); }
 
     //! @brief Get option with char name
     /*! @see option* find(char c)
