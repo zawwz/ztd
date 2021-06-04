@@ -49,10 +49,10 @@ install:
 
 uninstall:
 	rm $(INSTALL)/usr/lib/libztd.*
-	rm -rd $(INSTALL)/usr/include/ztd
+	rm -r $(INSTALL)/usr/include/ztd
 
 clean:
 	rm $(ODIR)/*.o $(ODIR_SHARED)/*.o
 
 clear:
-	rm -rd libztd.a libztd.so doc
+	rm -r libztd.a libztd.so doc

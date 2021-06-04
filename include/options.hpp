@@ -135,9 +135,14 @@ namespace ztd
   class option_set
   {
   public:
+    option_set() { ; }
+    option_set(option opt) { add(opt); }
+    option_set(std::vector<option> opts) { option_vec = opts; }
     /*CREATION FUNCTIONS*/
     //! @brief Add option to the set
     inline void add(option opt) { option_vec.push_back(opt); }
+    //! @brief Vector call of add();
+    inline void add(std::vector<option> opts) { for(auto it: opts) add(it); }
     //! @brief Variadic call of add()
     template<class... Args>
     void add(Args... args) { std::vector<option> rargs = { static_cast<option>(args)...}; for(auto it: rargs) add(it); }
@@ -162,22 +167,22 @@ namespace ztd
     option* find(const std::string& str);
     inline option* find(const char* str) { return this->find(std::string(str)); }
 
-    static constexpr struct process_arguments default_process_args={};
+    static constexpr process_arguments default_process_args={};
 
     //! @brief Process arguments through the option set
     /*!
     If errors are encountered, exceptions option_error are thrown
-    @see struct process_arguments
+    @see process_arguments
     @param arguments vector of string containing arguments and options
     @param behavior behavioral changes for option processing. Optional
     @return if @a behavior.stop_on_argument is specified, returns unprocessed arguments\n otherwise, returns leftover arguments that are not options\n
     */
-    std::vector<std::string> process(std::vector<std::string> const& arguments, struct process_arguments const& behavior=default_process_args);
+    std::vector<std::string> process(std::vector<std::string> const& arguments, process_arguments const& behavior=default_process_args);
     //! @brief Process arguments through the option set
     /*!
-    @see process(std::vector<std::string> const& arguments, struct process_arguments const& behavior)
+    @see process(std::vector<std::string> const& arguments, process_arguments const& behavior)
     */
-    inline std::vector<std::string> process(int argc, char** argv, struct process_arguments const& behavior=default_process_args) { return this->process(ztd::argVector(argc, argv), behavior); }
+    inline std::vector<std::string> process(int argc, char** argv, process_arguments const& behavior=default_process_args) { return this->process(ztd::argVector(argc, argv), behavior); }
 
     //! @brief Get option with char name
     /*! @see option* find(char c)
